@@ -69,17 +69,16 @@ public class UKFI_Main_Process extends UKFI_Object {
     // For convenience
     protected final UKFI_Files files;
     protected final WaAS_Data data;
-    
+
     /**
      * Subset of all records that have the same household composition.
      */
     HashSet<Short> subset;
-    
+
     ArrayList<Byte> gors;
     TreeMap<Byte, String> GORNameLookup;
     HashMap<Byte, HashSet<Short>>[] GORSubsets;
     HashMap<Short, Byte>[] GORLookups;
-    
 
     public UKFI_Main_Process(UKFI_Environment env) {
         super(env);
@@ -107,7 +106,7 @@ public class UKFI_Main_Process extends UKFI_Object {
         p.doLoadDataIntoCaches = true; // rename/reuse just left here for convenience...
         p.run();
     }
-    
+
     /**
      * The aim is to measure: 1) Costs associated with tenure (expenditure on
      * rent, net of housing benefit, and/or mortgage interest for primary
@@ -130,8 +129,8 @@ public class UKFI_Main_Process extends UKFI_Object {
         /**
          * Set up input and output directories.
          */
-        File indir= files.getWaASInputDir();
-        File generateddir  = files.getGeneratedWaASDir();
+        File indir = files.getWaASInputDir();
+        File generateddir = files.getGeneratedWaASDir();
         File outdir = new File(generateddir, WaAS_Strings.s_Subsets);
         outdir.mkdirs();
 
@@ -343,8 +342,6 @@ public class UKFI_Main_Process extends UKFI_Object {
         return r;
     }
 
-    
-    
     /**
      * Go through hholds for all waves and figure which ones have not
      * significantly changed in terms of hhold composition. Having children and
