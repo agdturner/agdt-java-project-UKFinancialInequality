@@ -369,8 +369,7 @@ public class UKFI_Process_HPROPW extends UKFI_Main_Process {
      */
     public TreeMap<Byte, Double> getChangeHPROPWAll() {
         TreeMap<Byte, Double> r  = new TreeMap<>();
-        File inDir = files.getGeneratedWaASDir();
-        WaAS_HHOLD_Handler hH = new WaAS_HHOLD_Handler(env.we, inDir);
+        WaAS_HHOLD_Handler hH = new WaAS_HHOLD_Handler(env.we);
         HashMap<Byte, HashMap<Short, Double>>[] HPROPWAll;
         HPROPWAll = new HashMap[env.NWAVES];
         TreeMap<Short, WaAS_Wave1_HHOLD_Record> allW1 = hH.loadAllW1();

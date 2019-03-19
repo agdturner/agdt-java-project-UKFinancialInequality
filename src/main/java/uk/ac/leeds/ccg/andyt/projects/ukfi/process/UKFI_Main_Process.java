@@ -218,7 +218,7 @@ public class UKFI_Main_Process extends UKFI_Object {
 //        hv.createGraph();
 
         // Check some counts
-        WaAS_HHOLD_Handler hH = new WaAS_HHOLD_Handler(env.we, indir);
+        WaAS_HHOLD_Handler hH = new WaAS_HHOLD_Handler(env.we);
         Object[] w5 = hH.loadW5();
         TreeMap<Short, WaAS_Wave5_HHOLD_Record> w5recs;
         w5recs = (TreeMap<Short, WaAS_Wave5_HHOLD_Record>) w5[0];

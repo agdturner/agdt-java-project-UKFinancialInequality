@@ -123,15 +123,13 @@ public class UKFI_Process_TENURE extends UKFI_Main_Process {
         }
 
         // Get tenure counts for all.
-        WaAS_HHOLD_Handler handler;
-        File inDir = files.getWaASInputDir();
-        handler = new WaAS_HHOLD_Handler(env.we, inDir);
-        TreeMap<Short, WaAS_Wave1_HHOLD_Record> allW1 = handler.loadAllW1();
+        WaAS_HHOLD_Handler hH  = new WaAS_HHOLD_Handler(env.we);
+        TreeMap<Short, WaAS_Wave1_HHOLD_Record> allW1 = hH.loadAllW1();
         TreeMap<Byte, TreeMap<Byte, Integer>> TenureCountsGORW1;
         TenureCountsGORW1 = getTenureCountsForGOR(gors, allW1, WaAS_Data.W1);
         int allW1size = allW1.size();
         allW1 = null; // Set to null to free memory.
-        TreeMap<Short, WaAS_Wave5_HHOLD_Record> allW5 = handler.loadAllW5();
+        TreeMap<Short, WaAS_Wave5_HHOLD_Record> allW5 = hH.loadAllW5();
         TreeMap<Byte, TreeMap<Byte, Integer>> TenureCountsGORW5;
         TenureCountsGORW5 = getTenureCountsForGOR(gors, allW5, WaAS_Data.W5);
         int allW5size = allW5.size();
