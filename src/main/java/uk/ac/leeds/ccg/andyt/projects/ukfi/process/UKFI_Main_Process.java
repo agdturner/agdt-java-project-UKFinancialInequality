@@ -29,6 +29,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import uk.ac.leeds.ccg.andyt.generic.core.Generic_Environment;
+import uk.ac.leeds.ccg.andyt.generic.core.Generic_Strings;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.core.WaAS_Strings;
 import uk.ac.leeds.ccg.andyt.generic.io.Generic_IO;
 import uk.ac.leeds.ccg.andyt.projects.ukfi.core.UKFI_Environment;
@@ -98,7 +99,14 @@ public class UKFI_Main_Process extends UKFI_Object {
     }
 
     public static void main(String[] args) {
-        UKFI_Environment env = new UKFI_Environment(new Generic_Environment());
+        Generic_Environment ge = new Generic_Environment();
+        File wasDataDir = new File(
+                ge.getFiles().getDataDir().getParentFile().getParentFile().getParentFile(),
+                WaAS_Strings.s_generic);
+        wasDataDir = new File(wasDataDir, Generic_Strings.s_data);
+        wasDataDir = new File(wasDataDir, WaAS_Strings.PROJECT_NAME);
+        wasDataDir = new File(wasDataDir, Generic_Strings.s_data);
+        UKFI_Environment env = new UKFI_Environment(ge, wasDataDir);
         UKFI_Main_Process p = new UKFI_Main_Process(env);
         p.files.setDataDirectory(UKFI_Files.getDefaultDataDir());
         // Main switches
@@ -167,7 +175,7 @@ public class UKFI_Main_Process extends UKFI_Object {
         /**
          * TENURE
          */
-        UKFI_Process_TENURE tp  = new UKFI_Process_TENURE(this);
+        UKFI_Process_TENURE tp = new UKFI_Process_TENURE(this);
         tp.createGraph();
 //        /**
 //         * HPROPW
@@ -188,7 +196,7 @@ public class UKFI_Main_Process extends UKFI_Object {
         Object[] w5 = hH.loadW5();
         TreeMap<Short, WaAS_Wave5_HHOLD_Record> w5recs;
         w5recs = (TreeMap<Short, WaAS_Wave5_HHOLD_Record>) w5[0];
-        Iterator<Short> ites  = w5recs.keySet().iterator();
+        Iterator<Short> ites = w5recs.keySet().iterator();
         int countMortgage = 0;
         int countNonMortgage = 0;
         int countBuyWithMortgage = 0;
@@ -402,6 +410,7 @@ public class UKFI_Main_Process extends UKFI_Object {
                 + "over all 5 waves.");
         env.logEndTag(m1);
         env.logEndTag(m);
+        env.logID = env.logIDMain;
         return r;
     }
 

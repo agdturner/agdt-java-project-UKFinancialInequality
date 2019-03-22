@@ -46,14 +46,14 @@ public class UKFI_Environment extends UKFI_OutOfMemoryErrorHandler {
 
     public transient static final String EOL = System.getProperty("line.separator");
 
-    public UKFI_Environment(Generic_Environment ge) {
+    public UKFI_Environment(Generic_Environment ge, File wasDataDir) {
         //Memory_Threshold = 3000000000L;
         files = new UKFI_Files();
         this.ge = ge;
-        we = new WaAS_Environment(ge);
-        File f = files.getEnvDataFile();
+        we = new WaAS_Environment(wasDataDir);
+        File f = we.files.getEnvDataFile();
         if (f.exists()) {
-            data = (WaAS_Data) Generic_IO.readObject(we.files.getEnvDataFile());
+            data = (WaAS_Data) Generic_IO.readObject(f);
             data.env = we;
         } else {
             data = new WaAS_Data(we);
