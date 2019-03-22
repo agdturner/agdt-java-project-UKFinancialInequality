@@ -54,6 +54,7 @@ public class UKFI_Environment extends UKFI_OutOfMemoryErrorHandler {
         File f = files.getEnvDataFile();
         if (f.exists()) {
             data = (WaAS_Data) Generic_IO.readObject(we.files.getEnvDataFile());
+            data.env = we;
         } else {
             data = new WaAS_Data(we);
         }
