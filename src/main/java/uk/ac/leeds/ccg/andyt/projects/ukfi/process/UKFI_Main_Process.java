@@ -31,7 +31,6 @@ import java.util.concurrent.Future;
 import uk.ac.leeds.ccg.andyt.generic.core.Generic_Environment;
 import uk.ac.leeds.ccg.andyt.generic.core.Generic_Strings;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.core.WaAS_Strings;
-import uk.ac.leeds.ccg.andyt.generic.io.Generic_IO;
 import uk.ac.leeds.ccg.andyt.projects.ukfi.core.UKFI_Environment;
 import uk.ac.leeds.ccg.andyt.projects.ukfi.core.UKFI_Object;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_Collection;
@@ -48,7 +47,6 @@ import uk.ac.leeds.ccg.andyt.generic.data.waas.data.hhold.WaAS_Wave2_HHOLD_Recor
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.hhold.WaAS_Wave3_HHOLD_Record;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.hhold.WaAS_Wave4_HHOLD_Record;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.hhold.WaAS_Wave5_HHOLD_Record;
-import uk.ac.leeds.ccg.andyt.generic.data.waas.data.person.WaAS_Wave1Or2Or3Or4Or5_PERSON_Record;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.person.WaAS_Wave1_PERSON_Record;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.person.WaAS_Wave2_PERSON_Record;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.person.WaAS_Wave3_PERSON_Record;
@@ -70,6 +68,7 @@ public class UKFI_Main_Process extends UKFI_Object {
     // For convenience
     protected final UKFI_Files files;
     protected final WaAS_Data data;
+    protected final WaAS_HHOLD_Handler hh;
 
     /**
      * Subset of all records that have the same household composition.
@@ -77,6 +76,10 @@ public class UKFI_Main_Process extends UKFI_Object {
     HashSet<Short> subset;
 
     ArrayList<Byte> gors;
+    /**
+     * Government Office Region (GOR) name lookup looks up the name from the
+     * numerical code.
+     */
     TreeMap<Byte, String> GORNameLookup;
     HashMap<Byte, HashSet<Short>>[] GORSubsets;
     HashMap<Short, Byte>[] GORLookups;
@@ -85,6 +88,7 @@ public class UKFI_Main_Process extends UKFI_Object {
         super(env);
         files = env.files;
         this.data = env.data;
+        hh = env.we.hh;
     }
 
     public UKFI_Main_Process(UKFI_Main_Process p) {
@@ -96,6 +100,7 @@ public class UKFI_Main_Process extends UKFI_Object {
         GORNameLookup = p.GORNameLookup;
         GORSubsets = p.GORSubsets;
         GORLookups = p.GORLookups;
+        hh = env.we.hh;
     }
 
     public static void main(String[] args) {
@@ -134,23 +139,28 @@ public class UKFI_Main_Process extends UKFI_Object {
     public void run() {
         String m = this.getClass().getName() + ".run()";
         env.logStartTag(m);
-        initSubset();
         /**
-         * Init gors and GORNameLookup.
+         * Init subset.
          */
-        gors = WaAS_Handler.getGORs();
-        // Government Office Region (GOR) name lookup looks up the name from the numerical code.
-        GORNameLookup = WaAS_Handler.getGORNameLookup();
-        Iterator<Byte> ite;
+        subset = hh.getStableHouseholdCompositionSubset(data);
+        /**
+         * Init gors, GORNameLookup, GORSubsets and GORLookups.
+         */
+        if (true) {
+            gors = WaAS_Handler.getGORs();
+            GORNameLookup = WaAS_Handler.getGORNameLookup();
+            Object[] o = hh.getGORSubsetsAndLookup(data, gors, subset);
+            GORSubsets = (HashMap<Byte, HashSet<Short>>[]) o[0];
+            GORLookups = (HashMap<Short, Byte>[]) o[1];
+        }
 
         /**
-         * Init GORSubsets and GORLookups
+         * Summarise data by GOR.
          */
-        initGORSubsetsAndLookups();
         int[] ttotals = new int[env.NWAVES];
         env.log("GOR Subsets");
         env.log("NW1,NW2,NW3,NW4,NW5,GORNumber,GORName");
-        ite = gors.iterator();
+        Iterator<Byte> ite = gors.iterator();
         while (ite.hasNext()) {
             String s = "";
             int[] totals = new int[env.NWAVES];
@@ -192,8 +202,7 @@ public class UKFI_Main_Process extends UKFI_Object {
 //        hv.createGraph();
 
         // Check some counts
-        WaAS_HHOLD_Handler hH = new WaAS_HHOLD_Handler(env.we);
-        Object[] w5 = hH.loadW5();
+        Object[] w5 = hh.loadW5();
         TreeMap<Short, WaAS_Wave5_HHOLD_Record> w5recs;
         w5recs = (TreeMap<Short, WaAS_Wave5_HHOLD_Record>) w5[0];
         Iterator<Short> ites = w5recs.keySet().iterator();
@@ -280,41 +289,6 @@ public class UKFI_Main_Process extends UKFI_Object {
     }
 
     /**
-     * Initialises {@link #subset} to be the set of all records that have a
-     * "stable" household composition.
-     */
-    public void initSubset() {
-        String m = "initSubset()";
-        env.logStartTag(m);
-        String fn = "SameCompositionHashSet_CASEW1.dat";
-        File f = new File(files.getOutputDataDir(), fn);
-        if (f.exists()) {
-            subset = (HashSet<Short>) Generic_IO.readObject(f);
-        } else {
-            subset = getStableHouseholdComposition();
-            Generic_IO.writeObject(subset, f);
-        }
-        env.log("Total number of initial households in wave 1 " + subset.size());
-        env.logEndTag(m);
-    }
-
-    /**
-     * Init GORSubsets and GORLookups
-     */
-    public void initGORSubsetsAndLookups() {
-        Object[] o;
-        File f = new File(files.getOutputDataDir(), "GORSubsetsAndLookups.dat");
-        if (f.exists()) {
-            o = (Object[]) Generic_IO.readObject(f);
-        } else {
-            o = WaAS_Handler.getGORSubsetsAndLookup(data, gors, subset);
-            Generic_IO.writeObject(o, f);
-        }
-        GORSubsets = (HashMap<Byte, HashSet<Short>>[]) o[0];
-        GORLookups = (HashMap<Short, Byte>[]) o[1];
-    }
-
-    /**
      *
      * @param c
      * @return
@@ -347,671 +321,6 @@ public class UKFI_Main_Process extends UKFI_Object {
         r[5] = c.size();
         r[6] = countZero;
         r[7] = countNegative;
-        return r;
-    }
-
-    /**
-     * Go through hholds for all waves and figure which ones have not
-     * significantly changed in terms of hhold composition. Having children and
-     * children leaving home is fine. Anything else is perhaps an issue...
-     *
-     * @return
-     */
-    public HashSet<Short> getStableHouseholdComposition() {
-        String m = "getStableHouseholdComposition";
-        env.logIDSub = env.ge.initLog(m);
-        env.logID = env.logIDSub;
-        HashSet<Short> r = new HashSet<>();
-        env.log("Number of combined records " + data.CASEW1ToCID.size());
-        env.log("Number of collections of combined records " + data.data.size());
-        int count0 = 0;
-        int count1 = 0;
-        int count2 = 0;
-        int count3 = 0;
-        // Check For Household Records
-        String m1 = "Check For Household Records";
-        env.logStartTag(m1);
-        Iterator<Short> ite = data.data.keySet().iterator();
-        while (ite.hasNext()) {
-            short cID = ite.next();
-            WaAS_Collection c = data.getCollection(cID);
-            HashMap<Short, WaAS_Combined_Record> cData = c.getData();
-            Iterator<Short> ite2 = cData.keySet().iterator();
-            while (ite2.hasNext()) {
-                short CASEW1 = ite2.next();
-                WaAS_Combined_Record cr = cData.get(CASEW1);
-                boolean check = process0(CASEW1, cr);
-                if (check) {
-                    count0++;
-                }
-                check = process1(CASEW1, cr);
-                if (check) {
-                    count1++;
-                }
-                check = process2(CASEW1, cr);
-                if (check) {
-                    count2++;
-                }
-                check = process3(CASEW1, cr);
-                if (check) {
-                    count3++;
-                    r.add(CASEW1);
-                }
-            }
-            data.clearCollection(cID);
-        }
-        env.log("" + count0 + " Total hholds in all 5 waves.");
-        env.log("" + count1 + " Total hholds that are a single hhold over all 5 "
-                + "waves.");
-        env.log("" + count2 + " Total hholds that are a single hhold over all 5 "
-                + "waves and have same number of adults in all 5 waves.");
-        env.log("" + count3 + " Total hholds that are a single hhold over all 5 "
-                + "waves and have the same basic adult household composition "
-                + "over all 5 waves.");
-        env.logEndTag(m1);
-        env.logEndTag(m);
-        env.logID = env.logIDMain;
-        return r;
-    }
-
-    /**
-     * Checks if cr has the same basic adult household composition in each wave
-     * for those hholds that have only 1 record for each wave. Iff this is the
-     * case then true is returned. The number of adults in a household is
-     * allowed to decrease. If the number of adults increases, then a further
-     * check is done: If the number of householders is the same and the number
-     * of children has decreased (it might be assumed that children have become
-     * non-dependents). But, if that is not the case, then if the number of
-     * dependents increases for any wave then false is returned.
-     *
-     * @param CASEW1
-     * @param cr
-     * @return true iff cr has only 1 record for each wave.
-     */
-    protected boolean process3(short CASEW1, WaAS_Combined_Record cr) {
-        boolean r;
-        r = true;
-        if (cr.w2Records.size() > 1) {
-            env.log("There are multiple Wave 2 records for CASEW1 " + CASEW1);
-            r = false;
-        }
-        Short CASEW2;
-        Iterator<Short> ite2;
-        ite2 = cr.w2Records.keySet().iterator();
-        while (ite2.hasNext()) {
-            CASEW2 = ite2.next();
-            WaAS_Wave2_Record w2rec;
-            w2rec = cr.w2Records.get(CASEW2);
-            String m3;
-            m3 = "There are multiple Wave 3 records for "
-                    + "CASEW2 " + CASEW2 + " in CASEW1 " + CASEW1;
-            if (cr.w3Records.containsKey(CASEW2)) {
-                HashMap<Short, WaAS_Wave3_Record> w3_2;
-                w3_2 = cr.w3Records.get(CASEW2);
-                if (w3_2.size() > 1) {
-                    env.log(m3);
-                    r = false;
-                } else {
-                    Short CASEW3;
-                    Iterator<Short> ite3;
-                    ite3 = w3_2.keySet().iterator();
-                    while (ite3.hasNext()) {
-                        CASEW3 = ite3.next();
-                        WaAS_Wave3_Record w3rec;
-                        w3rec = w3_2.get(CASEW3);
-                        String m4;
-                        m4 = "There are multiple Wave 4 records for "
-                                + "CASEW3 " + CASEW3
-                                + " in CASEW2 " + CASEW2
-                                + " in CASEW1 " + CASEW1;
-                        if (cr.w4Records.containsKey(CASEW2)) {
-                            HashMap<Short, HashMap<Short, WaAS_Wave4_Record>> w4_2;
-                            w4_2 = cr.w4Records.get(CASEW2);
-                            if (w4_2.containsKey(CASEW3)) {
-                                HashMap<Short, WaAS_Wave4_Record> w4_3;
-                                w4_3 = w4_2.get(CASEW3);
-                                if (w4_3.size() > 1) {
-                                    env.log(m4);
-                                    r = false;
-                                } else {
-                                    Iterator<Short> ite4;
-                                    ite4 = w4_3.keySet().iterator();
-                                    while (ite4.hasNext()) {
-                                        Short CASEW4;
-                                        CASEW4 = ite4.next();
-                                        WaAS_Wave4_Record w4rec;
-                                        w4rec = w4_3.get(CASEW4);
-                                        String m5;
-                                        m5 = "There are multiple Wave 5 records for "
-                                                + "CASEW4 " + CASEW4
-                                                + " in CASEW3 " + CASEW3
-                                                + " in CASEW2 " + CASEW2
-                                                + " in CASEW1 " + CASEW1;
-                                        if (cr.w5Records.containsKey(CASEW2)) {
-                                            HashMap<Short, HashMap<Short, HashMap<Short, WaAS_Wave5_Record>>> w5_2;
-                                            w5_2 = cr.w5Records.get(CASEW2);
-                                            if (w5_2.containsKey(CASEW3)) {
-                                                HashMap<Short, HashMap<Short, WaAS_Wave5_Record>> w5_3;
-                                                w5_3 = w5_2.get(CASEW3);
-                                                if (w5_3.containsKey(CASEW4)) {
-                                                    HashMap<Short, WaAS_Wave5_Record> w5_4;
-                                                    w5_4 = w5_3.get(CASEW4);
-                                                    if (w5_4.size() > 1) {
-                                                        env.log(m5);
-                                                        r = false;
-                                                    } else {
-                                                        Iterator<Short> ite5;
-                                                        ite5 = w5_4.keySet().iterator();
-                                                        while (ite5.hasNext()) {
-                                                            Short CASEW5;
-                                                            CASEW5 = ite5.next();
-                                                            WaAS_Wave5_Record w5rec;
-                                                            w5rec = w5_4.get(CASEW5);
-                                                            // Wave 1
-                                                            WaAS_Wave1_HHOLD_Record w1hhold;
-                                                            w1hhold = cr.w1Record.getHhold();
-                                                            ArrayList<WaAS_Wave1_PERSON_Record> w1people;
-                                                            w1people = cr.w1Record.getPeople();
-                                                            // Wave 2
-                                                            WaAS_Wave2_HHOLD_Record w2hhold;
-                                                            w2hhold = w2rec.getHhold();
-                                                            ArrayList<WaAS_Wave2_PERSON_Record> w2people;
-                                                            w2people = w2rec.getPeople();
-                                                            // Wave 3
-                                                            WaAS_Wave3_HHOLD_Record w3hhold;
-                                                            w3hhold = w3rec.getHhold();
-                                                            ArrayList<WaAS_Wave3_PERSON_Record> w3people;
-                                                            w3people = w3rec.getPeople();
-                                                            // Wave 4
-                                                            WaAS_Wave4_HHOLD_Record w4hhold;
-                                                            w4hhold = w4rec.getHhold();
-                                                            ArrayList<WaAS_Wave4_PERSON_Record> w4people;
-                                                            w4people = w4rec.getPeople();
-                                                            // Wave 5
-                                                            WaAS_Wave5_HHOLD_Record w5hhold;
-                                                            w5hhold = w5rec.getHhold();
-                                                            ArrayList<WaAS_Wave5_PERSON_Record> w5people;
-                                                            w5people = w5rec.getPeople();
-                                                            byte w1NUMADULT = w1hhold.getNUMADULT();
-                                                            byte w1NUMCHILD = w1hhold.getNUMCHILD();
-                                                            //byte w1NUMDEPCH = w1hhold.getNUMDEPCH();
-                                                            byte w1NUMHHLDR = w1hhold.getNUMHHLDR();
-
-                                                            byte w2NUMADULT = w2hhold.getNUMADULT();
-                                                            byte w2NUMCHILD = w2hhold.getNUMCHILD();
-                                                            //byte w2NUMDEPCH = w2hhold.getNUMDEPCH_HH();
-                                                            //boolean w2NUMNDEP = w2hhold.getNUMNDEP();
-                                                            byte w2NUMHHLDR = w2hhold.getNUMHHLDR();
-
-                                                            byte w3NUMADULT = w3hhold.getNUMADULT();
-                                                            byte w3NUMCHILD = w3hhold.getNUMCHILD();
-                                                            //byte w3NUMDEPCH = w3hhold.getNUMDEPCH();
-                                                            byte w3NUMHHLDR = w3hhold.getNUMHHLDR();
-
-                                                            byte w4NUMADULT = w4hhold.getNUMADULT();
-                                                            byte w4NUMCHILD = w4hhold.getNUMCHILD();
-                                                            //byte w4NUMDEPCH = w4hhold.getNUMDEPCH();
-                                                            byte w4NUMHHLDR = w4hhold.getNUMHHLDR();
-
-                                                            byte w5NUMADULT = w5hhold.getNUMADULT();
-                                                            byte w5NUMCHILD = w5hhold.getNUMCHILD();
-                                                            //byte w5NUMDEPCH = w5hhold.getNUMDEPCH();
-                                                            byte w5NUMHHLDR = w5hhold.getNUMHHLDR();
-                                                            // Compare Wave 1 to Wave 2
-                                                            if (w1NUMADULT > w2NUMADULT) {
-                                                                if (!(w1NUMHHLDR == w2NUMHHLDR
-                                                                        && w1NUMCHILD > w2NUMCHILD)) {
-                                                                    // Compare Number of Non dependents in Waves 1 and 2
-                                                                    int w1NUMNDep = getNUMNDEP(w1people);
-                                                                    int w2NUMNDep = getNUMNDEP(w2people);
-                                                                    if (w1NUMNDep < w2NUMNDep) {
-                                                                        r = false;
-                                                                    }
-                                                                }
-                                                            }
-                                                            // Compare Wave 2 to Wave 3
-                                                            if (w2NUMADULT > w3NUMADULT) {
-                                                                if (!(w2NUMHHLDR == w3NUMHHLDR
-                                                                        && w2NUMCHILD > w3NUMCHILD)) {
-                                                                    // Compare Number of Non dependents in Waves 2 and 3
-                                                                    int w2NUMNDep = getNUMNDEP(w2people);
-                                                                    int w3NUMNDep = getNUMNDEP(w3people);
-                                                                    if (w2NUMNDep < w3NUMNDep) {
-                                                                        r = false;
-                                                                    }
-                                                                }
-                                                            }
-                                                            // Compare Wave 3 to Wave 4
-                                                            if (w3NUMADULT > w4NUMADULT) {
-                                                                if (!(w3NUMHHLDR == w4NUMHHLDR
-                                                                        && w3NUMCHILD > w4NUMCHILD)) {
-                                                                    // Compare Number of Non dependents in Waves 3 and 4
-                                                                    int w3NUMNDep = getNUMNDEP(w3people);
-                                                                    int w4NUMNDep = getNUMNDEP(w4people);
-                                                                    if (w3NUMNDep < w4NUMNDep) {
-                                                                        r = false;
-                                                                    }
-                                                                }
-                                                            }
-                                                            // Compare Wave 4 to Wave 5
-                                                            if (w4NUMADULT > w5NUMADULT) {
-                                                                if (!(w4NUMHHLDR == w5NUMHHLDR
-                                                                        && w4NUMCHILD > w5NUMCHILD)) {
-                                                                    // Compare Number of Non dependents in Waves 4 and 5
-                                                                    int w4NUMNDep = getNUMNDEP(w4people);
-                                                                    int w5NUMNDep = getNUMNDEP(w5people);
-                                                                    if (w4NUMNDep < w5NUMNDep) {
-                                                                        r = false;
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                } else {
-                                                    env.log("!w5_3.containsKey(CASEW4) " + m5);
-                                                }
-                                            } else {
-                                                env.log("!w5_2.containsKey(CASEW3) " + m5);
-                                                r = false;
-                                            }
-                                        } else {
-                                            env.log("!cr.w5Records.containsKey(CASEW2) " + m5);
-                                            r = false;
-                                        }
-                                    }
-                                }
-                            } else {
-                                env.log("!w4_2.containsKey(CASEW3) " + m4);
-                                r = false;
-                            }
-                        } else {
-                            env.log("!cr.w4Records.containsKey(CASEW2) " + m4);
-                            r = false;
-                        }
-                    }
-                }
-            } else {
-                env.log(m3);
-            }
-        }
-        return r;
-    }
-
-    /**
-     * Get number of non child dependents.
-     *
-     * @param <T>
-     * @param people
-     * @return
-     * @TODO Move to Person Handler
-     */
-    public <T> int getNUMNDEP(ArrayList<T> people) {
-        int r = 0;
-        WaAS_Wave1Or2Or3Or4Or5_PERSON_Record p2;
-        Iterator<T> ite;
-        ite = people.iterator();
-        while (ite.hasNext()) {
-            p2 = (WaAS_Wave1Or2Or3Or4Or5_PERSON_Record) ite.next();
-//            p2.getISHRP();
-//            p2.getISHRPPART();
-//            p2.getISCHILD();
-            if (p2.getISNDEP()) {
-                r++;
-            }
-        }
-        return r;
-    }
-
-    /**
-     * Checks if cr has the same number of adults in each wave for those hholds
-     * that have only 1 record for each wave.
-     *
-     * @param CASEW1
-     * @param cr
-     * @return true iff cr has only 1 record for each wave.
-     */
-    protected boolean process2(short CASEW1, WaAS_Combined_Record cr) {
-        boolean r;
-        r = true;
-        if (cr.w2Records.size() > 1) {
-            env.log("There are multiple Wave 2 records for CASEW1 " + CASEW1);
-            r = false;
-        }
-        Short CASEW2;
-        Iterator<Short> ite2;
-        ite2 = cr.w2Records.keySet().iterator();
-        while (ite2.hasNext()) {
-            CASEW2 = ite2.next();
-            WaAS_Wave2_Record w2rec;
-            w2rec = cr.w2Records.get(CASEW2);
-            String m3;
-            m3 = "There are multiple Wave 3 records for "
-                    + "CASEW2 " + CASEW2 + " in CASEW1 " + CASEW1;
-            if (cr.w3Records.containsKey(CASEW2)) {
-                HashMap<Short, WaAS_Wave3_Record> w3_2;
-                w3_2 = cr.w3Records.get(CASEW2);
-                if (w3_2.size() > 1) {
-                    env.log(m3);
-                    r = false;
-                } else {
-                    Short CASEW3;
-                    Iterator<Short> ite3;
-                    ite3 = w3_2.keySet().iterator();
-                    while (ite3.hasNext()) {
-                        CASEW3 = ite3.next();
-                        WaAS_Wave3_Record w3rec;
-                        w3rec = w3_2.get(CASEW3);
-                        String m4;
-                        m4 = "There are multiple Wave 4 records for "
-                                + "CASEW3 " + CASEW3
-                                + " in CASEW2 " + CASEW2
-                                + " in CASEW1 " + CASEW1;
-                        if (cr.w4Records.containsKey(CASEW2)) {
-                            HashMap<Short, HashMap<Short, WaAS_Wave4_Record>> w4_2;
-                            w4_2 = cr.w4Records.get(CASEW2);
-                            if (w4_2.containsKey(CASEW3)) {
-                                HashMap<Short, WaAS_Wave4_Record> w4_3;
-                                w4_3 = w4_2.get(CASEW3);
-                                if (w4_3.size() > 1) {
-                                    env.log(m4);
-                                    r = false;
-                                } else {
-                                    Iterator<Short> ite4;
-                                    ite4 = w4_3.keySet().iterator();
-                                    while (ite4.hasNext()) {
-                                        Short CASEW4;
-                                        CASEW4 = ite4.next();
-                                        WaAS_Wave4_Record w4rec;
-                                        w4rec = w4_3.get(CASEW4);
-                                        String m5;
-                                        m5 = "There are multiple Wave 5 records for "
-                                                + "CASEW4 " + CASEW4
-                                                + " in CASEW3 " + CASEW3
-                                                + " in CASEW2 " + CASEW2
-                                                + " in CASEW1 " + CASEW1;
-                                        if (cr.w5Records.containsKey(CASEW2)) {
-                                            HashMap<Short, HashMap<Short, HashMap<Short, WaAS_Wave5_Record>>> w5_2;
-                                            w5_2 = cr.w5Records.get(CASEW2);
-                                            if (w5_2.containsKey(CASEW3)) {
-                                                HashMap<Short, HashMap<Short, WaAS_Wave5_Record>> w5_3;
-                                                w5_3 = w5_2.get(CASEW3);
-                                                if (w5_3.containsKey(CASEW4)) {
-                                                    HashMap<Short, WaAS_Wave5_Record> w5_4;
-                                                    w5_4 = w5_3.get(CASEW4);
-                                                    if (w5_4.size() > 1) {
-                                                        env.log(m5);
-                                                        r = false;
-                                                    } else {
-                                                        Iterator<Short> ite5;
-                                                        ite5 = w5_4.keySet().iterator();
-                                                        while (ite5.hasNext()) {
-                                                            Short CASEW5;
-                                                            CASEW5 = ite5.next();
-                                                            WaAS_Wave5_Record w5rec;
-                                                            w5rec = w5_4.get(CASEW5);
-                                                            byte w1 = cr.w1Record.getHhold().getNUMADULT();
-                                                            byte w2 = w2rec.getHhold().getNUMADULT();
-                                                            byte w3 = w3rec.getHhold().getNUMADULT();
-                                                            byte w4 = w4rec.getHhold().getNUMADULT();
-                                                            byte w5 = w5rec.getHhold().getNUMADULT();
-                                                            if (!(w1 == w2 && w2 == w3 && w3 == w4 && w4 == w5)) {
-                                                                r = false;
-                                                            }
-                                                        }
-                                                    }
-                                                } else {
-                                                    env.log("!w5_3.containsKey(CASEW4) " + m5);
-                                                }
-                                            } else {
-                                                env.log("!w5_2.containsKey(CASEW3) " + m5);
-                                                r = false;
-                                            }
-                                        } else {
-                                            env.log("!cr.w5Records.containsKey(CASEW2) " + m5);
-                                            r = false;
-                                        }
-                                    }
-                                }
-                            } else {
-                                env.log("!w4_2.containsKey(CASEW3) " + m4);
-                                r = false;
-                            }
-                        } else {
-                            env.log("!cr.w4Records.containsKey(CASEW2) " + m4);
-                            r = false;
-                        }
-                    }
-                }
-            } else {
-                env.log(m3);
-            }
-        }
-        return r;
-    }
-
-    /**
-     * Checks if cr has only 1 record for each wave.
-     *
-     * @param CASEW1
-     * @param cr
-     * @return true iff cr has only 1 record for each wave.
-     */
-    protected boolean process1(short CASEW1, WaAS_Combined_Record cr) {
-        boolean r;
-        r = true;
-        if (cr.w2Records.size() > 1) {
-            env.log("There are multiple Wave 2 records for CASEW1 " + CASEW1);
-            r = false;
-        }
-        Short CASEW2;
-        Iterator<Short> ite2;
-        ite2 = cr.w2Records.keySet().iterator();
-        while (ite2.hasNext()) {
-            CASEW2 = ite2.next();
-            //WaAS_Wave2_Record w2rec;
-            //w2rec = cr.w2Records.get(CASEW2);
-            String m3;
-            m3 = "There are multiple Wave 3 records for "
-                    + "CASEW2 " + CASEW2 + " in CASEW1 " + CASEW1;
-            if (cr.w3Records.containsKey(CASEW2)) {
-                HashMap<Short, WaAS_Wave3_Record> w3_2;
-                w3_2 = cr.w3Records.get(CASEW2);
-                if (w3_2.size() > 1) {
-                    env.log(m3);
-                    r = false;
-                } else {
-                    Short CASEW3;
-                    Iterator<Short> ite3;
-                    ite3 = w3_2.keySet().iterator();
-                    while (ite3.hasNext()) {
-                        CASEW3 = ite3.next();
-                        //WaAS_Wave3_Record w3rec;
-                        //w3rec = w3_2.get(CASEW3);
-                        String m4;
-                        m4 = "There are multiple Wave 4 records for "
-                                + "CASEW3 " + CASEW3
-                                + " in CASEW2 " + CASEW2
-                                + " in CASEW1 " + CASEW1;
-                        if (cr.w4Records.containsKey(CASEW2)) {
-                            HashMap<Short, HashMap<Short, WaAS_Wave4_Record>> w4_2;
-                            w4_2 = cr.w4Records.get(CASEW2);
-                            if (w4_2.containsKey(CASEW3)) {
-                                HashMap<Short, WaAS_Wave4_Record> w4_3;
-                                w4_3 = w4_2.get(CASEW3);
-                                if (w4_3.size() > 1) {
-                                    env.log(m4);
-                                    r = false;
-                                } else {
-                                    Iterator<Short> ite4;
-                                    ite4 = w4_3.keySet().iterator();
-                                    while (ite4.hasNext()) {
-                                        Short CASEW4;
-                                        CASEW4 = ite4.next();
-                                        //WaAS_Wave4_Record w4rec;
-                                        //w4rec = w4_3.get(CASEW4);
-                                        String m5;
-                                        m5 = "There are multiple Wave 5 records for "
-                                                + "CASEW4 " + CASEW4
-                                                + " in CASEW3 " + CASEW3
-                                                + " in CASEW2 " + CASEW2
-                                                + " in CASEW1 " + CASEW1;
-                                        if (cr.w5Records.containsKey(CASEW2)) {
-                                            HashMap<Short, HashMap<Short, HashMap<Short, WaAS_Wave5_Record>>> w5_2;
-                                            w5_2 = cr.w5Records.get(CASEW2);
-                                            if (w5_2.containsKey(CASEW3)) {
-                                                HashMap<Short, HashMap<Short, WaAS_Wave5_Record>> w5_3;
-                                                w5_3 = w5_2.get(CASEW3);
-                                                if (w5_3.containsKey(CASEW4)) {
-                                                    HashMap<Short, WaAS_Wave5_Record> w5_4;
-                                                    w5_4 = w5_3.get(CASEW4);
-                                                    if (w5_4.size() > 1) {
-                                                        env.log(m5);
-                                                        r = false;
-                                                    } else {
-//                                                        Iterator<Short> ite5;
-//                                                        ite5 = w5_4.keySet().iterator();
-//                                                        while (ite5.hasNext()) {
-//                                                            Short CASEW5;
-//                                                            CASEW5 = ite5.next();
-//                                                            WaAS_Wave5_Record w5rec;
-//                                                            w5rec = w5_4.get(CASEW5);
-//                                                        }
-                                                    }
-                                                } else {
-                                                    env.log("!w5_3.containsKey(CASEW4) " + m5);
-                                                }
-                                            } else {
-                                                env.log("!w5_2.containsKey(CASEW3) " + m5);
-                                                r = false;
-                                            }
-                                        } else {
-                                            env.log("!cr.w5Records.containsKey(CASEW2) " + m5);
-                                            r = false;
-                                        }
-                                    }
-                                }
-                            } else {
-                                env.log("!w4_2.containsKey(CASEW3) " + m4);
-                                r = false;
-                            }
-                        } else {
-                            env.log("!cr.w4Records.containsKey(CASEW2) " + m4);
-                            r = false;
-                        }
-                    }
-                }
-            } else {
-                env.log(m3);
-            }
-        }
-        return r;
-    }
-
-    /**
-     * Checks if cr has records for each wave.
-     *
-     * @param CASEW1
-     * @param cr
-     * @return true iff cr has records for each wave.
-     */
-    protected boolean process0(short CASEW1, WaAS_Combined_Record cr) {
-        boolean r;
-        r = true;
-        if (cr.w1Record == null) {
-            env.log("There is no Wave 1 record for CASEW1 " + CASEW1);
-            r = false;
-        }
-        if (cr.w2Records.isEmpty()) {
-            env.log("There are no Wave 2 records for CASEW1 " + CASEW1);
-            r = false;
-        }
-        Short CASEW2;
-        Iterator<Short> ite2;
-        ite2 = cr.w2Records.keySet().iterator();
-        while (ite2.hasNext()) {
-            CASEW2 = ite2.next();
-            //WaAS_Wave2_Record w2rec;
-            //w2rec = cr.w2Records.get(CASEW2);
-            String m3;
-            m3 = "There are no Wave 3 records for "
-                    + "CASEW2 " + CASEW2 + " in CASEW1 " + CASEW1;
-            if (cr.w3Records.containsKey(CASEW2)) {
-                HashMap<Short, WaAS_Wave3_Record> w3_2;
-                w3_2 = cr.w3Records.get(CASEW2);
-                Short CASEW3;
-                Iterator<Short> ite3;
-                ite3 = w3_2.keySet().iterator();
-                while (ite3.hasNext()) {
-                    CASEW3 = ite3.next();
-                    //WaAS_Wave3_Record w3rec;
-                    //w3rec = w3_2.get(CASEW3);
-                    String m4;
-                    m4 = "There are no Wave 4 records for "
-                            + "CASEW3 " + CASEW3
-                            + " in CASEW2 " + CASEW2
-                            + " in CASEW1 " + CASEW1;
-                    if (cr.w4Records.containsKey(CASEW2)) {
-                        HashMap<Short, HashMap<Short, WaAS_Wave4_Record>> w4_2;
-                        w4_2 = cr.w4Records.get(CASEW2);
-                        if (w4_2.containsKey(CASEW3)) {
-                            HashMap<Short, WaAS_Wave4_Record> w4_3;
-                            w4_3 = w4_2.get(CASEW3);
-                            Iterator<Short> ite4;
-                            ite4 = w4_3.keySet().iterator();
-                            while (ite4.hasNext()) {
-                                Short CASEW4;
-                                CASEW4 = ite4.next();
-                                //WaAS_Wave4_Record w4rec;
-                                //w4rec = w4_3.get(CASEW4);
-                                String m5;
-                                m5 = "There are no Wave 5 records for "
-                                        + "CASEW4 " + CASEW4
-                                        + " in CASEW3 " + CASEW3
-                                        + " in CASEW2 " + CASEW2
-                                        + " in CASEW1 " + CASEW1;
-                                if (cr.w5Records.containsKey(CASEW2)) {
-                                    HashMap<Short, HashMap<Short, HashMap<Short, WaAS_Wave5_Record>>> w5_2;
-                                    w5_2 = cr.w5Records.get(CASEW2);
-                                    if (w5_2.containsKey(CASEW3)) {
-                                        HashMap<Short, HashMap<Short, WaAS_Wave5_Record>> w5_3;
-                                        w5_3 = w5_2.get(CASEW3);
-                                        if (w5_3.containsKey(CASEW4)) {
-                                            HashMap<Short, WaAS_Wave5_Record> w5_4;
-                                            w5_4 = w5_3.get(CASEW4);
-//                                            Iterator<Short> ite5;
-//                                            ite5 = w5_4.keySet().iterator();
-//                                            while (ite5.hasNext()) {
-//                                                Short CASEW5;
-//                                                CASEW5 = ite5.next();
-//                                                WaAS_Wave5_Record w5rec;
-//                                                w5rec = w5_4.get(CASEW5);
-//                                            }
-                                        } else {
-                                            env.log("!w5_3.containsKey(CASEW4) " + m5);
-                                        }
-                                    } else {
-                                        env.log("!w5_2.containsKey(CASEW3) " + m5);
-                                        r = false;
-                                    }
-                                } else {
-                                    env.log("!cr.w5Records.containsKey(CASEW2) " + m5);
-                                    r = false;
-                                }
-                            }
-                        } else {
-                            env.log("!w4_2.containsKey(CASEW3) " + m4);
-                            r = false;
-                        }
-                    } else {
-                        env.log("!cr.w4Records.containsKey(CASEW2) " + m4);
-                        r = false;
-                    }
-                }
-            } else {
-                env.log("!cr.w3Records.containsKey(CASEW2) " + m3);
-                r = false;
-            }
-        }
         return r;
     }
 

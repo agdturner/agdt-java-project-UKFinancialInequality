@@ -5,7 +5,6 @@
  */
 package uk.ac.leeds.ccg.andyt.projects.ukfi.process;
 
-import java.io.File;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,7 +13,6 @@ import java.util.TreeMap;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_Collection;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_Combined_Record;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_Data;
-import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_HHOLD_Handler;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_Wave2_Record;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_Wave3_Record;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_Wave4_Record;
@@ -410,13 +408,12 @@ public class UKFI_Process_HVALUE extends UKFI_Main_Process {
      */
     public TreeMap<Byte, Double> getChangeHVALUEAll() {
         TreeMap<Byte, Double> r  = new TreeMap<>();
-        WaAS_HHOLD_Handler hH = new WaAS_HHOLD_Handler(env.we);
         HashMap<Byte, HashMap<Short, Double>>[] HVALUEAll;
         HVALUEAll = new HashMap[WaAS_Data.NWAVES];
-        TreeMap<Short, WaAS_Wave1_HHOLD_Record> allW1 = hH.loadAllW1();
+        TreeMap<Short, WaAS_Wave1_HHOLD_Record> allW1 = hh.loadAllW1();
         HVALUEAll[0] = getHVALUEForGOR(gors, allW1, (byte) 1);
         allW1 = null; // Set to null to free memory.
-        TreeMap<Short, WaAS_Wave5_HHOLD_Record> allW5 = hH.loadAllW5();
+        TreeMap<Short, WaAS_Wave5_HHOLD_Record> allW5 = hh.loadAllW5();
         HVALUEAll[4] = getHVALUEForGOR(gors, allW5, (byte) 5);
         allW5 = null; // Set to null to free memory.
         env.log("HVALUE Total Household Property Wealth for each wave for all records.");
