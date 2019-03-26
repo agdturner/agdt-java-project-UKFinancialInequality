@@ -19,8 +19,6 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -187,19 +185,13 @@ public class UKFI_Main_Process extends UKFI_Object {
          */
         UKFI_Process_TENURE tp = new UKFI_Process_TENURE(this);
         tp.createGraph();
-//        /**
-//         * HPROPW
-//         */
-//        WIGB_Process_HPROPW hp;
-//        hp = new WIGB_Process_HPROPW(this);
-//        hp.createGraph();
-//
-//        /**
-//         * HVALUE
-//         */
-//        WIGB_Process_HVALUE hv;
-//        hv = new WIGB_Process_HVALUE(this);
-//        hv.createGraph();
+
+        /**
+         * HVALUE, HPROPW
+         */
+        UKFI_Process_Variable hv  = new UKFI_Process_Variable(this);
+        hv.createGraph(new BigDecimal("20000"), "HVALUE");
+        hv.createGraph(new BigDecimal("20000"), "HPROPW");
 
         // Check some counts
         Object[] w5 = hh.loadW5();
@@ -286,42 +278,6 @@ public class UKFI_Main_Process extends UKFI_Object {
         //getWave1Or2HPRICEBLookup();
         //getWave3Or4Or5HPRICEBLookup();
         env.logEndTag(m);
-    }
-
-    /**
-     *
-     * @param c
-     * @return
-     */
-    protected double[] getSummaryStatistics(Collection<Double> c) {
-        DoubleSummaryStatistics stats = c.stream().
-                collect(DoubleSummaryStatistics::new,
-                        DoubleSummaryStatistics::accept,
-                        DoubleSummaryStatistics::combine);
-        double[] r = new double[8];
-        r[0] = stats.getMax();
-        r[1] = stats.getMin();
-        r[2] = stats.getCount();
-        r[3] = stats.getSum();
-        r[4] = stats.getAverage();
-        int countNegative = 0;
-        int countZero = 0;
-        Iterator<Double> ite;
-        ite = c.iterator();
-        double HPROPW;
-        while (ite.hasNext()) {
-            HPROPW = ite.next();
-            if (HPROPW == 0.0d) {
-                countZero++;
-            } else if (HPROPW < 0.0d) {
-                countNegative++;
-                //System.out.println("" + HPROPW + " Negative HPROPW");
-            }
-        }
-        r[5] = c.size();
-        r[6] = countZero;
-        r[7] = countNegative;
-        return r;
     }
 
     protected void addVariable(String s, TreeMap<Integer, String> vIDToVName,

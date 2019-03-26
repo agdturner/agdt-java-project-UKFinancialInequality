@@ -5,7 +5,6 @@
  */
 package uk.ac.leeds.ccg.andyt.projects.ukfi.process;
 
-import java.io.File;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
