@@ -71,8 +71,7 @@ public class UKFI_Process_TENURE extends UKFI_Main_Process {
             TenureCountsGOR = new TreeMap<>();
             TenureCountsWaveGORSubsets.put(w, TenureCountsGORSubsets);
             TenureCountsWaveGOR.put(w, TenureCountsGOR);
-            Iterator<Byte> ite;
-            ite = gors.iterator();
+            Iterator<Byte> ite  = gors.iterator();
             while (ite.hasNext()) {
                 byte gor = ite.next();
                 if (gor != 3) {
@@ -192,10 +191,8 @@ public class UKFI_Process_TENURE extends UKFI_Main_Process {
                 WaAS_Collection c = data.getCollection(cID);
                 c.getData().keySet().stream().forEach(CASEW1 -> {
                     if (subset.contains(CASEW1)) {
-                        WaAS_Combined_Record cr;
-                        cr = c.getData().get(CASEW1);
-                        WaAS_Wave1_HHOLD_Record w1;
-                        w1 = cr.w1Record.getHhold();
+                        WaAS_Combined_Record cr  = c.getData().get(CASEW1);
+                        WaAS_Wave1_HHOLD_Record w1  = cr.w1Record.getHhold();
                         Byte GOR = GORLookups[wave - 1].get(CASEW1);
                         TreeMap<Byte, Integer> TenureCounts;
                         TenureCounts = TenureCountsGOR.get(GOR);

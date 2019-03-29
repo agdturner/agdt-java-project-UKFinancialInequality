@@ -157,112 +157,6 @@ public class UKFI_Main_Process extends UKFI_Object {
          */
         subset0 = hh.getStableHouseholdCompositionSubset(data);
 
-                TreeMap<Integer, Double> breaks = new TreeMap<>();
-
-        if (false) {
-        /**
-         * Init subsets. These are deciles of variable though negative and zero
-         * values are special cases.
-         */
-        int ndivs = 10;
-        subsets = new HashSet[ndivs];
-        for (int i = 0; i < ndivs; i++) {
-            subsets[i] = new HashSet<>();
-        }
-        Object[] w1 = hh.loadW1(subset0, WaAS_Strings.s_InW1W2W3W4W5 + WaAS_Strings.s_StableHouseholdCompositionSubset);
-        TreeMap<Short, WaAS_Wave1_HHOLD_Record> w1recs;
-        w1recs = (TreeMap<Short, WaAS_Wave1_HHOLD_Record>) w1[0];
-        int n = w1recs.size();
-        env.log("Size " + n);
-        int zeroOrLessHPROPWCount = 0;
-        // Initialise counts to have all the HPROPW values with counts
-        TreeMap<Double, Integer> counts = new TreeMap<>();
-        Iterator<Short> ites = subset0.iterator();
-        while (ites.hasNext()) {
-            short CASEW1 = ites.next();
-            WaAS_Wave1_HHOLD_Record w1rec = w1recs.get(CASEW1);
-            double HPROPW = w1rec.getHPROPW();
-            if (HPROPW <= 0) {
-                zeroOrLessHPROPWCount += 1;
-            }
-            if (counts.containsKey(HPROPW)) {
-                counts.put(HPROPW, counts.get(HPROPW) + 1);
-            } else {
-                counts.put(HPROPW, 1);
-            }
-        }
-        int ndiv8 = (n - zeroOrLessHPROPWCount) / 8;
-        env.log("ndiv8 " + ndiv8);
-        Iterator<Double> ited = counts.keySet().iterator();
-        double HPROPW0 = ited.next();
-        double HPROPW1 = HPROPW0;
-        int breakIndex = 0;
-        while (ited.hasNext()) {
-            HPROPW0 = ited.next();
-            if (HPROPW0 == 0) {
-                env.log("Adding break[" + breakIndex + "] " + HPROPW1);
-                breaks.put(breakIndex, HPROPW1);
-                breakIndex++;
-                env.log("Adding break[" + breakIndex + "] " + HPROPW0);
-                breaks.put(breakIndex, HPROPW0);
-                breakIndex++;
-                HPROPW0 = HPROPW1;
-                break;
-            }
-            HPROPW1 = HPROPW0;
-        }
-        int divc = counts.get(HPROPW0);
-        int divc0 = divc;
-        while (ited.hasNext()) {
-            double HPROPW = ited.next();
-            int count = counts.get(HPROPW);
-            //env.log("HPROPW " + HPROPW + " count " + count);
-            divc += count;
-            if (divc > ndiv8) {
-                env.log("HPROPW (" + HPROPW0 + ", " + HPROPW1 + ") count " + divc0);
-                env.log("Adding break[" + breakIndex + "] " + HPROPW1);
-                breaks.put(breakIndex, HPROPW1);
-                breakIndex++;
-                divc -= divc0;
-                divc0 = divc;
-                HPROPW0 = HPROPW1;
-            } else {
-                divc0 = divc;
-            }
-            HPROPW1 = HPROPW;
-        }
-        // Go through the data again and get the subsets
-        ites = subset0.iterator();
-        while (ites.hasNext()) {
-            short CASEW1 = ites.next();
-            WaAS_Wave1_HHOLD_Record w1rec = w1recs.get(CASEW1);
-            double HPROPW = w1rec.getHPROPW();
-            if (HPROPW <= breaks.get(0)) {
-                subsets[0].add(CASEW1);
-            } else if (HPROPW <= breaks.get(1)) {
-                subsets[1].add(CASEW1);
-            } else if (HPROPW <= breaks.get(2)) {
-                subsets[2].add(CASEW1);
-            } else if (HPROPW <= breaks.get(3)) {
-                subsets[3].add(CASEW1);
-            } else if (HPROPW <= breaks.get(4)) {
-                subsets[4].add(CASEW1);
-            } else if (HPROPW <= breaks.get(5)) {
-                subsets[5].add(CASEW1);
-            } else if (HPROPW <= breaks.get(6)) {
-                subsets[6].add(CASEW1);
-            } else if (HPROPW <= breaks.get(7)) {
-                subsets[7].add(CASEW1);
-            } else if (HPROPW <= breaks.get(8)) {
-                subsets[8].add(CASEW1);
-            } else {
-                subsets[9].add(CASEW1);
-            }
-        }
-        }
-        gors = WaAS_Handler.getGORs();
-        GORNameLookup = WaAS_Handler.getGORNameLookup();
-
         //env.we.getPersonHandler();
         WaAS_PERSON_Handler pH = new WaAS_PERSON_Handler(env.we);
 
@@ -271,49 +165,41 @@ public class UKFI_Main_Process extends UKFI_Object {
         //int min
         BigDecimal yIncrement = new BigDecimal("20000");
 
-        if (true) {
+        boolean doProcessDataForAnastasia = true;
+        if (doProcessDataForAnastasia) {
             File dataForAnastasia = new File(files.getOutputDataDir(), "Anastasia.csv");
-            PrintWriter pw = Generic_IO.getPrintWriter(dataForAnastasia, false);
-            String h = "CASEW1"
-//                    + ",TOTWLTHW1,HPROPWW1,SEESMHRPW1,HHTYPEW1,TENUREW1"
-//                    + ",TOTWLTHW2,HPROPWW2,SEESMHRPW2,HHTYPEW2,TENUREW2"
-//                    + ",TOTWLTHW3,HPROPWW3,SEESMHRPW3,HHTYPEW3,TENUREW3"
-//                    + ",TOTWLTHW4,HPROPWW4,SEESMHRPW4,HHTYPEW4,TENUREW4"
-//                    + ",TOTWLTHW5,HPROPWW5,SEESMHRPW5,HHTYPEW5,TENUREW5";
-//                    + ",TOTWLTHW1,HPROPWW1,ERECTAXW1,HHTYPEW1,TENUREW1"
-//                    + ",TOTWLTHW2,HPROPWW2,ERECTAXW2,HHTYPEW2,TENUREW2"
-//                    + ",TOTWLTHW3,HPROPWW3,ERECTAXW3,HHTYPEW3,TENUREW3"
-//                    + ",TOTWLTHW4,HPROPWW4,ERECTAXW4,HHTYPEW4,TENUREW4"
-//                    + ",TOTWLTHW5,HPROPWW5,ERECTAXW5,HHTYPEW5,TENUREW5";
-                    
-                    + ",TOTWLTHW1,HPROPWW1,ERECTAXW1,SEESMHRPW1,HHTYPEW1,TENUREW1"
-                    + ",TOTWLTHW2,HPROPWW2,ERECTAXW2,SEESMHRPW2,HHTYPEW2,TENUREW2"
-                    + ",TOTWLTHW3,HPROPWW3,ERECTAXW3,SEESMHRPW3,HHTYPEW3,TENUREW3"
-                    + ",TOTWLTHW4,HPROPWW4,ERECTAXW4,SEESMHRPW4,HHTYPEW4,TENUREW4"
-                    + ",TOTWLTHW5,HPROPWW5,ERECTAXW5,SEESMHRPW5,HHTYPEW5,TENUREW5";
             /**
-             * HPROPWW1, HHOLD VARS
-             * <ul>
-             * <li>TOTWLTH Total household wealth</li>
-             * <li>HFINWw5_sum	Gross Financial Wealth</li>
-             * <li>ERECTAX Monthly income before or after tax</li>x
-             * <li>DVTotNIR	DVNIEmp_aggr + DVNISe_aggr + DVBenefitAnnualw5_aggr
-             * + DVNIPPen_aggr + DVNIInv_aggr + DVNIOthR_aggr Household Net
-             * Annual (regular) income</li>
-             * <li>DVTotGIR	Household Gross Annual (regular) income</li>
-             * <ul>
-             *
-             * PERSON VARS
-             * <ul>
-             * <li>SEAMT Average income over last 12 mths</li>
-             * <li>SEESM or GRSEESM Estimate of average monthly earnings</li>
-             * <ul>
+             * Write out header.
              */
-            pw.println(h);
-            HashMap<Short, WaAS_CollectionSimple> cs = env.we.data.dataSimple;
-            //for (int decile = 1; decile < 10; decile++) {
-            //    subset = subsets[decile - 1];
-            subset = subset0;
+            try (PrintWriter pw = Generic_IO.getPrintWriter(dataForAnastasia, false)) {
+                /**
+                 * Write out header.
+                 */
+                String h = "CASEW1";
+                for (int w = 1; w < 6; w++) {
+                    h += ",GORW" + w + ",NUMADULTW" + w + ",NUMHHLDRW" + w
+                            + ",TOTWLTHW" + w + ",HFINW_SUMW" + w + ",HPROPWW" + w
+                            //+ ",ERECTAXW" + w + ",SEESMHRPW" + w +
+                            + ",HHTYPEW" + w + ",TEN1W" + w + ",LLORDW" + w
+                            + ",HSETYPEW" + w + ",GCONTVBW" + w + ",VCARN" + w
+                            + ",HBEDRM" + w;
+                    if (w > 2) {
+                        h += ",DVTOTGIRW" + w;
+                    }
+                    if (w > 3) {
+                        h += ",DVBENEFITANNUAL_AGGRW" + w;
+                    }
+
+                }
+                h += ",HBFROMW5,HRTBEVW5,HHOSCHW5";
+                pw.println(h);
+                /**
+                 * Write out values.
+                 */
+                HashMap<Short, WaAS_CollectionSimple> cs = env.we.data.dataSimple;
+                //for (int decile = 1; decile < 10; decile++) {
+                //    subset = subsets[decile - 1];
+                subset = subset0;
                 Iterator<Short> ite = cs.keySet().iterator();
                 while (ite.hasNext()) {
                     Short cID = ite.next();
@@ -326,125 +212,300 @@ public class UKFI_Main_Process extends UKFI_Object {
                         if (subset.contains(CASEW1)) {
                             String line = "" + CASEW1 + ",";
                             WaAS_Combined_Record_Simple r = cr.get(CASEW1);
-                            // Wave 1
+                            /**
+                             * Wave 1
+                             */
                             WaAS_Wave1_HHOLD_Record w1hrec = r.w1Record.getHhold();
+                            line += w1hrec.getGOR() + ",";
+                            line += w1hrec.getNUMADULT() + ",";
+                            line += w1hrec.getNUMHHLDR() + ",";
                             line += w1hrec.getTOTWLTH() + ",";
+                            line += w1hrec.getHFINW_SUM() + ",";
                             line += w1hrec.getHPROPW() + ",";
-                            line += w1hrec.getERECTAX() + ",";
-                            //w1hrec.getDVTOTNIR();
-                            // Add SEESMHRP
-                            boolean doneHRP  = false;
-                            ArrayList<WaAS_Wave1_PERSON_Record> w1ps = r.w1Record.getPeople();
-                            Iterator<WaAS_Wave1_PERSON_Record> wlpsi = w1ps.iterator();
-                            while (wlpsi.hasNext()) {
-                                WaAS_Wave1_PERSON_Record w1p = wlpsi.next();
-                                if (w1p.getISHRP()) {
-                                    line += w1p.getSEESM() + ",";
-                                    doneHRP = true;
-                                }
-                            }
-                            if (!doneHRP) {
-                                line += ",";
-                            }
-                            doneHRP = false;
+//                        line += w1hrec.getERECTAX() + ",";
+//                        //w1hrec.getDVTOTNIR();
+//                        // Add SEESMHRP
+//                        boolean doneHRP = false;
+//                        ArrayList<WaAS_Wave1_PERSON_Record> w1ps = r.w1Record.getPeople();
+//                        Iterator<WaAS_Wave1_PERSON_Record> wlpsi = w1ps.iterator();
+//                        while (wlpsi.hasNext()) {
+//                            WaAS_Wave1_PERSON_Record w1p = wlpsi.next();
+//                            if (w1p.getISHRP()) {
+//                                line += w1p.getSEESM() + ",";
+//                                doneHRP = true;
+//                            }
+//                        }
+//                        if (!doneHRP) {
+//                            line += ",";
+//                        }
+//                        doneHRP = false;
                             line += w1hrec.getHHOLDTYPE() + ",";
                             line += w1hrec.getTEN1() + ",";
-                            // Wave 2
+                            line += w1hrec.getLLORD() + ",";
+                            line += w1hrec.getHSETYPE() + ",";
+                            line += w1hrec.getGCONTVB() + ",";
+                            line += w1hrec.getVCARN() + ",";
+                            line += w1hrec.getHBEDRM() + ",";
+                            /**
+                             * Wave 2
+                             */
                             WaAS_Wave2_HHOLD_Record w2hrec = r.w2Record.getHhold();
+                            line += w2hrec.getGOR() + ",";
+                            line += w2hrec.getNUMADULT() + ",";
+                            line += w2hrec.getNUMHHLDR() + ",";
                             line += w2hrec.getTOTWLTH() + ",";
+                            line += w2hrec.getHFINW_SUM() + ",";
                             line += w2hrec.getHPROPW() + ",";
-                            line += w2hrec.getERECTAX() + ",";
-                            //w2hrec.getDVTOTNIR();
-                            // Add SEESMHRP
-                            ArrayList<WaAS_Wave2_PERSON_Record> w2ps = r.w2Record.getPeople();
-                            Iterator<WaAS_Wave2_PERSON_Record> w2psi = w2ps.iterator();
-                            while (w2psi.hasNext()) {
-                                WaAS_Wave2_PERSON_Record w2p = w2psi.next();
-                                if (w2p.getISHRP()) {
-                                    line += w2p.getSEESM() + ",";
-                                    doneHRP = true;
-                                }
-                            }
-                            if (!doneHRP) {
-                                line += ",";
-                            }
-                            doneHRP = false;
+//                        line += w2hrec.getERECTAX() + ",";
+//                        //w2hrec.getDVTOTNIR();
+//                        // Add SEESMHRP
+//                        ArrayList<WaAS_Wave2_PERSON_Record> w2ps = r.w2Record.getPeople();
+//                        Iterator<WaAS_Wave2_PERSON_Record> w2psi = w2ps.iterator();
+//                        while (w2psi.hasNext()) {
+//                            WaAS_Wave2_PERSON_Record w2p = w2psi.next();
+//                            if (w2p.getISHRP()) {
+//                                line += w2p.getSEESM() + ",";
+//                                doneHRP = true;
+//                            }
+//                        }
+//                        if (!doneHRP) {
+//                            line += ",";
+//                        }
+//                        doneHRP = false;
                             line += w2hrec.getHHOLDTYPE() + ",";
                             line += w2hrec.getTEN1() + ",";
-                            // Wave 3
+                            line += w2hrec.getLLORD() + ",";
+                            line += w2hrec.getHSETYPE() + ",";
+                            line += w2hrec.getGCONTVB() + ",";
+                            line += w2hrec.getVCARN() + ",";
+                            line += w2hrec.getHBEDRM() + ",";
+                            /**
+                             * Wave 3
+                             */
                             WaAS_Wave3_HHOLD_Record w3hrec = r.w3Record.getHhold();
+                            line += w3hrec.getGOR() + ",";
+                            line += w3hrec.getNUMADULT() + ",";
+                            line += w3hrec.getNUMHHLDR() + ",";
                             line += w3hrec.getTOTWLTH() + ",";
+                            line += w3hrec.getHFINW_SUM() + ",";
                             line += w3hrec.getHPROPW() + ",";
-                            line += w3hrec.getERECTAX() + ",";
-                            //w3hrec.getDVTOTNIR();
-                            ArrayList<WaAS_Wave3_PERSON_Record> w3ps = r.w3Record.getPeople();
-                            Iterator<WaAS_Wave3_PERSON_Record> w3psi = w3ps.iterator();
-                            while (wlpsi.hasNext()) {
-                                WaAS_Wave3_PERSON_Record w3p = w3psi.next();
-                                if (w3p.getISHRP()) {
-                                    line += w3p.getSEESM() + ",";
-                                    doneHRP = true;
-                                }
-                            }
-                            if (!doneHRP) {
-                                line += ",";
-                            }
-                            doneHRP = false;
+//                        line += w3hrec.getERECTAX() + ",";
+//                        //w3hrec.getDVTOTNIR();
+//                        ArrayList<WaAS_Wave3_PERSON_Record> w3ps = r.w3Record.getPeople();
+//                        Iterator<WaAS_Wave3_PERSON_Record> w3psi = w3ps.iterator();
+//                        while (wlpsi.hasNext()) {
+//                            WaAS_Wave3_PERSON_Record w3p = w3psi.next();
+//                            if (w3p.getISHRP()) {
+//                                line += w3p.getSEESM() + ",";
+//                                doneHRP = true;
+//                            }
+//                        }
+//                        if (!doneHRP) {
+//                            line += ",";
+//                        }
+//                        doneHRP = false;
                             line += w3hrec.getHHOLDTYPE() + ",";
                             line += w3hrec.getTEN1() + ",";
-                            // Wave 4
+                            line += w3hrec.getLLORD() + ",";
+                            line += w3hrec.getHSETYPE() + ",";
+                            line += w3hrec.getGCONTVB() + ",";
+                            line += w3hrec.getVCARN() + ",";
+                            line += w3hrec.getHBEDRM() + ",";
+                            line += w3hrec.getDVTOTGIR() + ",";
+                            /**
+                             * Wave 4
+                             */
                             WaAS_Wave4_HHOLD_Record w4hrec = r.w4Record.getHhold();
+                            line += w4hrec.getGOR() + ",";
+                            line += w4hrec.getNUMADULT() + ",";
+                            line += w4hrec.getNUMHHLDR() + ",";
                             line += w4hrec.getTOTWLTH() + ",";
+                            line += w4hrec.getHFINW_SUM() + ",";
                             line += w4hrec.getHPROPW() + ",";
-                            line += w4hrec.getERECTAX() + ",";
-                            //w4hrec.getDVTOTNIR();
-                            ArrayList<WaAS_Wave4_PERSON_Record> w4ps = r.w4Record.getPeople();
-                            Iterator<WaAS_Wave4_PERSON_Record> w4psi = w4ps.iterator();
-                            while (wlpsi.hasNext()) {
-                                WaAS_Wave4_PERSON_Record w4p = w4psi.next();
-                                byte p_FLAG4 = w4p.getP_FLAG4();
-                                if (p_FLAG4 == 1 || p_FLAG4 == 3) {
-                                    line += w4p.getSEESM() + ",";
-                                    doneHRP = true;
-                                }
-                            }
-                            if (!doneHRP) {
-                                line += ",";
-                            }
-                            doneHRP = false;
+//                        line += w4hrec.getERECTAX() + ",";
+//                        //w4hrec.getDVTOTNIR();
+//                        ArrayList<WaAS_Wave4_PERSON_Record> w4ps = r.w4Record.getPeople();
+//                        Iterator<WaAS_Wave4_PERSON_Record> w4psi = w4ps.iterator();
+//                        while (wlpsi.hasNext()) {
+//                            WaAS_Wave4_PERSON_Record w4p = w4psi.next();
+//                            byte p_FLAG4 = w4p.getP_FLAG4();
+//                            if (p_FLAG4 == 1 || p_FLAG4 == 3) {
+//                                line += w4p.getSEESM() + ",";
+//                                doneHRP = true;
+//                            }
+//                        }
+//                        if (!doneHRP) {
+//                            line += ",";
+//                        }
+//                        doneHRP = false;
                             line += w4hrec.getHHOLDTYPE() + ",";
                             line += w4hrec.getTEN1() + ",";
-                            // Wave 5
+                            line += w4hrec.getLLORD() + ",";
+                            line += w4hrec.getHSETYPE() + ",";
+                            line += w4hrec.getGCONTVB() + ",";
+                            line += w4hrec.getVCARN() + ",";
+                            line += w4hrec.getHBEDRM() + ",";
+                            line += w4hrec.getDVTOTGIR() + ",";
+                            line += w4hrec.getDVBENEFITANNUAL_AGGR() + ",";
+                            /**
+                             * Wave 5
+                             */
                             WaAS_Wave5_HHOLD_Record w5hrec = r.w5Record.getHhold();
+                            line += w5hrec.getGOR() + ",";
+                            line += w5hrec.getNUMADULT() + ",";
+                            line += w5hrec.getNUMHHLDR() + ",";
                             line += w5hrec.getTOTWLTH() + ",";
+                            line += w5hrec.getHFINW_SUM() + ",";
                             line += w5hrec.getHPROPW() + ",";
-                            line += w5hrec.getERECTAX() + ",";
-                            //w5hrec.getDVTOTNIR();
-                            ArrayList<WaAS_Wave5_PERSON_Record> w5ps = r.w5Record.getPeople();
-                            Iterator<WaAS_Wave5_PERSON_Record> w5psi = w5ps.iterator();
-                            while (w5psi.hasNext()) {
-                                WaAS_Wave5_PERSON_Record w5p = w5psi.next();
-                                byte p_FLAG4 = w5p.getP_FLAG4();
-                                if (p_FLAG4 == 1 || p_FLAG4 == 3) {
-                                    line += w5p.getSEESM() + ",";
-                                    doneHRP = true;
-                                }
-                            }
-                            if (!doneHRP) {
-                                line += ",";
-                            }
-                            line += w3hrec.getTOTWLTH() + ",";
-                            line += w3hrec.getHPROPW() + ",";
+//                        line += w5hrec.getERECTAX() + ",";
+//                        //w5hrec.getDVTOTNIR();
+//                        ArrayList<WaAS_Wave5_PERSON_Record> w5ps = r.w5Record.getPeople();
+//                        Iterator<WaAS_Wave5_PERSON_Record> w5psi = w5ps.iterator();
+//                        while (w5psi.hasNext()) {
+//                            WaAS_Wave5_PERSON_Record w5p = w5psi.next();
+//                            byte p_FLAG4 = w5p.getP_FLAG4();
+//                            if (p_FLAG4 == 1 || p_FLAG4 == 3) {
+//                                line += w5p.getSEESM() + ",";
+//                                doneHRP = true;
+//                            }
+//                        }
+//                        if (!doneHRP) {
+//                            line += ",";
+//                        }
+                            line += w5hrec.getHHOLDTYPE() + ",";
+                            line += w5hrec.getTEN1() + ",";
+                            line += w5hrec.getLLORD() + ",";
+                            line += w5hrec.getHSETYPE() + ",";
+                            line += w5hrec.getGCONTVB() + ",";
+                            line += w5hrec.getVCARN() + ",";
+                            line += w5hrec.getHBEDRM() + ",";
+                            line += w5hrec.getDVTOTGIR() + ",";
+                            line += w5hrec.getDVBENEFITANNUAL_AGGR() + ",";
+                            line += w5hrec.getHBFROM() + ",";
+                            line += w5hrec.getHRTBEV() + ",";
+                            line += w5hrec.getHHOSCH();
                             pw.println(line);
                         }
                     }
                     env.we.data.clearCollectionSimple(cID);
                 }
-            //}
-            pw.close();
+                //}
+            }
         }
 
-        if (false) {
+        TreeMap<Integer, Double> breaks = new TreeMap<>();
+
+        boolean doInitialiseSubsets = false;
+        if (doInitialiseSubsets) {
+            /**
+             * Init subsets. These are deciles of variable though negative and
+             * zero values are treated as special case deciles.
+             */
+            int ndivs = 10;
+            subsets = new HashSet[ndivs];
+            for (int i = 0; i < ndivs; i++) {
+                subsets[i] = new HashSet<>();
+            }
+            String loadName = WaAS_Strings.s_InW1W2W3W4W5
+                    + WaAS_Strings.s_StableHouseholdCompositionSubset;
+            Object[] w1 = hh.loadW1(subset0, loadName);
+            TreeMap<Short, WaAS_Wave1_HHOLD_Record> w1recs;
+            w1recs = (TreeMap<Short, WaAS_Wave1_HHOLD_Record>) w1[0];
+            int n = w1recs.size();
+            env.log("Size " + n);
+            int zeroOrLessHPROPWCount = 0;
+            // Initialise counts to have all the HPROPW values with counts
+            TreeMap<Double, Integer> counts = new TreeMap<>();
+            Iterator<Short> ites = subset0.iterator();
+            while (ites.hasNext()) {
+                short CASEW1 = ites.next();
+                WaAS_Wave1_HHOLD_Record w1rec = w1recs.get(CASEW1);
+                double HPROPW = w1rec.getHPROPW();
+                if (HPROPW <= 0) {
+                    zeroOrLessHPROPWCount += 1;
+                }
+                if (counts.containsKey(HPROPW)) {
+                    counts.put(HPROPW, counts.get(HPROPW) + 1);
+                } else {
+                    counts.put(HPROPW, 1);
+                }
+            }
+            int ndiv8 = (n - zeroOrLessHPROPWCount) / 8;
+            env.log("ndiv8 " + ndiv8);
+            Iterator<Double> ited = counts.keySet().iterator();
+            double HPROPW0 = ited.next();
+            double HPROPW1 = HPROPW0;
+            int breakIndex = 0;
+            while (ited.hasNext()) {
+                HPROPW0 = ited.next();
+                if (HPROPW0 == 0) {
+                    env.log("Adding break[" + breakIndex + "] " + HPROPW1);
+                    breaks.put(breakIndex, HPROPW1);
+                    breakIndex++;
+                    env.log("Adding break[" + breakIndex + "] " + HPROPW0);
+                    breaks.put(breakIndex, HPROPW0);
+                    breakIndex++;
+                    HPROPW0 = HPROPW1;
+                    break;
+                }
+                HPROPW1 = HPROPW0;
+            }
+            int divc = counts.get(HPROPW0);
+            int divc0 = divc;
+            while (ited.hasNext()) {
+                double HPROPW = ited.next();
+                int count = counts.get(HPROPW);
+                //env.log("HPROPW " + HPROPW + " count " + count);
+                divc += count;
+                if (divc > ndiv8) {
+                    env.log("HPROPW (" + HPROPW0 + ", " + HPROPW1 + ") count "
+                            + divc0);
+                    env.log("Adding break[" + breakIndex + "] " + HPROPW1);
+                    breaks.put(breakIndex, HPROPW1);
+                    breakIndex++;
+                    divc -= divc0;
+                    divc0 = divc;
+                    HPROPW0 = HPROPW1;
+                } else {
+                    divc0 = divc;
+                }
+                HPROPW1 = HPROPW;
+            }
+            // Go through the data again and get the subsets
+            ites = subset0.iterator();
+            while (ites.hasNext()) {
+                short CASEW1 = ites.next();
+                WaAS_Wave1_HHOLD_Record w1rec = w1recs.get(CASEW1);
+                double HPROPW = w1rec.getHPROPW();
+                if (HPROPW <= breaks.get(0)) {
+                    subsets[0].add(CASEW1);
+                } else if (HPROPW <= breaks.get(1)) {
+                    subsets[1].add(CASEW1);
+                } else if (HPROPW <= breaks.get(2)) {
+                    subsets[2].add(CASEW1);
+                } else if (HPROPW <= breaks.get(3)) {
+                    subsets[3].add(CASEW1);
+                } else if (HPROPW <= breaks.get(4)) {
+                    subsets[4].add(CASEW1);
+                } else if (HPROPW <= breaks.get(5)) {
+                    subsets[5].add(CASEW1);
+                } else if (HPROPW <= breaks.get(6)) {
+                    subsets[6].add(CASEW1);
+                } else if (HPROPW <= breaks.get(7)) {
+                    subsets[7].add(CASEW1);
+                } else if (HPROPW <= breaks.get(8)) {
+                    subsets[8].add(CASEW1);
+                } else {
+                    subsets[9].add(CASEW1);
+                }
+            }
+        }
+
+        gors = WaAS_Handler.getGORs();
+        GORNameLookup = WaAS_Handler.getGORNameLookup();
+
+        boolean doSumariseAndGraphDataForSubsets = false;
+        if (doSumariseAndGraphDataForSubsets) {
             for (int decile = 1; decile < 10; decile++) {
                 subset = subsets[decile - 1];
                 String name;
@@ -493,12 +554,12 @@ public class UKFI_Main_Process extends UKFI_Object {
                 }
                 s += "0,All";
                 env.log(s);
-////        /**
-////         * TENURE
-////         */
-////        UKFI_Process_TENURE tp = new UKFI_Process_TENURE(this);
-////        tp.createGraph();
-////
+                /**
+                 * TENURE
+                 */
+                UKFI_Process_TENURE tp = new UKFI_Process_TENURE(this);
+                tp.createGraph();
+
                 /**
                  * HVALUE, HPROPW
                  */
