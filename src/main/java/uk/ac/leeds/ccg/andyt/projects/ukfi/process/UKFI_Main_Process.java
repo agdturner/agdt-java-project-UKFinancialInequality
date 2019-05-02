@@ -178,20 +178,29 @@ public class UKFI_Main_Process extends UKFI_Object {
                 String h = "CASEW1";
                 for (int w = 1; w < 6; w++) {
                     h += ",GORW" + w + ",NUMADULTW" + w + ",NUMHHLDRW" + w
-                            + ",TOTWLTHW" + w + ",HFINW_SUMW" + w + ",HPROPWW" + w
+                            + ",TOTWLTHW" + w + ",HFINW_SUMW" + w + ",HPROPW"
+                            + w + ",HPHYSW" + w
                             //+ ",ERECTAXW" + w + ",SEESMHRPW" + w +
                             + ",HHTYPEW" + w + ",TEN1W" + w + ",LLORDW" + w
                             + ",HSETYPEW" + w + ",GCONTVBW" + w + ",VCARN" + w
                             + ",HBEDRM" + w;
                     if (w > 2) {
+                        h += ",DVTOTNIRW" + w;
                         h += ",DVTOTGIRW" + w;
                     }
                     if (w > 3) {
                         h += ",DVBENEFITANNUAL_AGGRW" + w;
                     }
-
+                    h += ",TOTPEN_SUMW" + w;
+                    h += ",HFINWNT_SUMW" + w;
+                    h += ",HFINL_SUMW" + w;
+                    h += ",HMORTGW" + w;
+                    if (w > 4) {
+                        h += ",HBFROMW" + w;
+                        h += ",HRTBEVW" + w;
+                        h += ",HHOSCHW" + w;
+                    }
                 }
-                h += ",HBFROMW5,HRTBEVW5,HHOSCHW5";
                 pw.println(h);
                 /**
                  * Write out values.
@@ -222,6 +231,7 @@ public class UKFI_Main_Process extends UKFI_Object {
                             line += w1hrec.getTOTWLTH() + ",";
                             line += w1hrec.getHFINW_SUM() + ",";
                             line += w1hrec.getHPROPW() + ",";
+                            line += w1hrec.getHPHYSW() + ",";
 //                        line += w1hrec.getERECTAX() + ",";
 //                        //w1hrec.getDVTOTNIR();
 //                        // Add SEESMHRP
@@ -246,6 +256,12 @@ public class UKFI_Main_Process extends UKFI_Object {
                             line += w1hrec.getGCONTVB() + ",";
                             line += w1hrec.getVCARN() + ",";
                             line += w1hrec.getHBEDRM() + ",";
+//                            line += w1hrec.getDVTOTNIR() + ",";
+//                            line += w1hrec.getDVTOTGIR() + ",";
+                            line += w1hrec.getTOTPEN_SUM() + ",";
+                            line += w1hrec.getHFINWNT_SUM() + ",";
+                            line += w1hrec.getHFINL_SUM() + ",";
+                            line += w1hrec.getHMORTG() + ",";
                             /**
                              * Wave 2
                              */
@@ -256,6 +272,7 @@ public class UKFI_Main_Process extends UKFI_Object {
                             line += w2hrec.getTOTWLTH() + ",";
                             line += w2hrec.getHFINW_SUM() + ",";
                             line += w2hrec.getHPROPW() + ",";
+                            line += w2hrec.getHPHYSW() + ",";
 //                        line += w2hrec.getERECTAX() + ",";
 //                        //w2hrec.getDVTOTNIR();
 //                        // Add SEESMHRP
@@ -279,6 +296,12 @@ public class UKFI_Main_Process extends UKFI_Object {
                             line += w2hrec.getGCONTVB() + ",";
                             line += w2hrec.getVCARN() + ",";
                             line += w2hrec.getHBEDRM() + ",";
+//                            line += w2hrec.getDVTOTNIR() + ",";
+//                            line += w2hrec.getDVTOTGIR() + ",";
+                            line += w2hrec.getTOTPEN_SUM() + ",";
+                            line += w2hrec.getHFINWNT_SUM() + ",";
+                            line += w2hrec.getHFINL_SUM() + ",";
+                            line += w2hrec.getHMORTG() + ",";
                             /**
                              * Wave 3
                              */
@@ -289,6 +312,7 @@ public class UKFI_Main_Process extends UKFI_Object {
                             line += w3hrec.getTOTWLTH() + ",";
                             line += w3hrec.getHFINW_SUM() + ",";
                             line += w3hrec.getHPROPW() + ",";
+                            line += w3hrec.getHPHYSW() + ",";
 //                        line += w3hrec.getERECTAX() + ",";
 //                        //w3hrec.getDVTOTNIR();
 //                        ArrayList<WaAS_Wave3_PERSON_Record> w3ps = r.w3Record.getPeople();
@@ -311,7 +335,12 @@ public class UKFI_Main_Process extends UKFI_Object {
                             line += w3hrec.getGCONTVB() + ",";
                             line += w3hrec.getVCARN() + ",";
                             line += w3hrec.getHBEDRM() + ",";
+                            line += w3hrec.getDVTOTNIR() + ",";
                             line += w3hrec.getDVTOTGIR() + ",";
+                            line += w3hrec.getTOTPEN_AGGR() + ",";
+                            line += w3hrec.getHFINWNT_SUM() + ",";
+                            line += w3hrec.getHFINL_AGGR() + ",";
+                            line += w3hrec.getHMORTG() + ",";
                             /**
                              * Wave 4
                              */
@@ -322,6 +351,7 @@ public class UKFI_Main_Process extends UKFI_Object {
                             line += w4hrec.getTOTWLTH() + ",";
                             line += w4hrec.getHFINW_SUM() + ",";
                             line += w4hrec.getHPROPW() + ",";
+                            line += w4hrec.getHPHYSW() + ",";
 //                        line += w4hrec.getERECTAX() + ",";
 //                        //w4hrec.getDVTOTNIR();
 //                        ArrayList<WaAS_Wave4_PERSON_Record> w4ps = r.w4Record.getPeople();
@@ -345,8 +375,13 @@ public class UKFI_Main_Process extends UKFI_Object {
                             line += w4hrec.getGCONTVB() + ",";
                             line += w4hrec.getVCARN() + ",";
                             line += w4hrec.getHBEDRM() + ",";
+                            line += w4hrec.getDVTOTNIR() + ",";
                             line += w4hrec.getDVTOTGIR() + ",";
                             line += w4hrec.getDVBENEFITANNUAL_AGGR() + ",";
+                            line += w4hrec.getTOTPEN_AGGR() + ",";
+                            line += w4hrec.getHFINWNT_SUM() + ",";
+                            line += w4hrec.getHFINL_AGGR() + ",";
+                            line += w4hrec.getHMORTG() + ",";
                             /**
                              * Wave 5
                              */
@@ -357,6 +392,7 @@ public class UKFI_Main_Process extends UKFI_Object {
                             line += w5hrec.getTOTWLTH() + ",";
                             line += w5hrec.getHFINW_SUM() + ",";
                             line += w5hrec.getHPROPW() + ",";
+                            line += w5hrec.getHPHYSW() + ",";
 //                        line += w5hrec.getERECTAX() + ",";
 //                        //w5hrec.getDVTOTNIR();
 //                        ArrayList<WaAS_Wave5_PERSON_Record> w5ps = r.w5Record.getPeople();
@@ -379,8 +415,13 @@ public class UKFI_Main_Process extends UKFI_Object {
                             line += w5hrec.getGCONTVB() + ",";
                             line += w5hrec.getVCARN() + ",";
                             line += w5hrec.getHBEDRM() + ",";
+                            line += w5hrec.getDVTOTNIR() + ",";
                             line += w5hrec.getDVTOTGIR() + ",";
                             line += w5hrec.getDVBENEFITANNUAL_AGGR() + ",";
+                            line += w5hrec.getTOTPEN_AGGR() + ",";
+                            line += w5hrec.getHFINWNT_SUM() + ",";
+                            line += w5hrec.getHFINL_AGGR() + ",";
+                            line += w5hrec.getHMORTG() + ",";
                             line += w5hrec.getHBFROM() + ",";
                             line += w5hrec.getHRTBEV() + ",";
                             line += w5hrec.getHHOSCH();
