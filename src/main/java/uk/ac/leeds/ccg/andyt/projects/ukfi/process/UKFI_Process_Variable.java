@@ -30,7 +30,7 @@ public class UKFI_Process_Variable extends UKFI_Main_Process {
          * Get Variable for each wave in the subsets.
          */
         TreeMap<Byte, Double> changeSubset = hh.getChangeVariableSubset(
-                vName, gors, GORSubsets, GORLookups, GORNameLookup, data,
+                vName, gors, GORSubsetsAndLookups, GORNameLookup, data,
                 subset);
 //        changeSubset = new TreeMap<>();
 //HVALUE
