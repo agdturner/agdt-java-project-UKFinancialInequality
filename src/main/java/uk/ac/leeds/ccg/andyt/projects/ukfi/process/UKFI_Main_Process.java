@@ -682,7 +682,7 @@ public class UKFI_Main_Process extends UKFI_Object {
              * Init gors, GORNameLookup, GORSubsets and GORLookups.
              */
             if (true) {
-                GORSubsetsAndLookups = hh.getGORSubsetsAndLookup(name, data, gors, subset);
+                GORSubsetsAndLookups = hh.getGORSubsetsAndLookups(name, data, gors, subset);
             }
 
             /**
