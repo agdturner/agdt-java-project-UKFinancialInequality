@@ -26,16 +26,18 @@ import uk.ac.leeds.ccg.andyt.projects.ukfi.core.UKFI_Strings;
 public class UKFI_Files extends Generic_Files {
 
     /**
+     * @param s
      */
-    public UKFI_Files(){
-        super();
+    public UKFI_Files(UKFI_Strings s){
+        super(s);
     }
 
     /**
+     * @param s
      * @param dataDir
      */
-    public UKFI_Files(File dataDir) {
-        super(dataDir);
+    public UKFI_Files(UKFI_Strings s, File dataDir) {
+        super(s, dataDir);
     }
 
     public File getWaASInputDir() {

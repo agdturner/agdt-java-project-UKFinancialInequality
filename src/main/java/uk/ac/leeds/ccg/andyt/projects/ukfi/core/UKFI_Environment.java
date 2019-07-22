@@ -14,6 +14,7 @@ import uk.ac.leeds.ccg.andyt.projects.ukfi.io.UKFI_Files;
  */
 public class UKFI_Environment extends UKFI_OutOfMemoryErrorHandler {
 
+    public transient UKFI_Strings strings;
     public transient UKFI_Files files;
     public transient Generic_Environment ge;
     public transient WaAS_Environment we;
@@ -33,37 +34,21 @@ public class UKFI_Environment extends UKFI_OutOfMemoryErrorHandler {
      */
     public int logIDSub;
     
-    /**
-     * Data.
-     */
-    public final WaAS_Data data;
-    public transient final byte NWAVES;
-    public transient final byte W1;
-    public transient final byte W2;
-    public transient final byte W3;
-    public transient final byte W4;
-    public transient final byte W5;
-
     public transient static final String EOL = System.getProperty("line.separator");
 
     public UKFI_Environment(Generic_Environment ge, File wasDataDir) {
         //Memory_Threshold = 3000000000L;
-        files = new UKFI_Files();
+        strings = new UKFI_Strings();
+        files = new UKFI_Files(strings);
         this.ge = ge;
         we = new WaAS_Environment(wasDataDir);
         File f = we.files.getEnvDataFile();
         if (f.exists()) {
-            data = (WaAS_Data) Generic_IO.readObject(f);
-            data.env = we;
+            we.data = (WaAS_Data) ge.io.readObject(f);
+            we.data.env = we;
         } else {
-            data = new WaAS_Data(we);
+            we.data = new WaAS_Data(we);
         }
-        NWAVES = WaAS_Data.NWAVES;
-        W1 = WaAS_Data.W1;
-        W2 = WaAS_Data.W2;
-        W3 = WaAS_Data.W3;
-        W4 = WaAS_Data.W4;
-        W5 = WaAS_Data.W5;
         logID = ge.initLog(UKFI_Strings.s_UKFI);
         logIDMain = logID;
     }
@@ -97,7 +82,7 @@ public class UKFI_Environment extends UKFI_OutOfMemoryErrorHandler {
      * @return See {@link WaAS_Environment#cacheData()}.
      */
     public boolean clearSomeData() {
-        return data.clearSomeData();
+        return we.data.clearSomeData();
     }
 
     /**

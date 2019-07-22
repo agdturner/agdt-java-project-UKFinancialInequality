@@ -10,19 +10,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.TreeMap;
+import uk.ac.leeds.ccg.andyt.generic.data.waas.core.WaAS_Environment;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_Collection;
-import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_CombinedRecord;
-import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_Data;
-import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_HHOLD_Handler;
-import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_W1ID;
-import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_W2ID;
-import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_W2Record;
-import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_W3ID;
-import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_W3Record;
-import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_W4ID;
-import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_W4Record;
-import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_W5ID;
-import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_W5Record;
+import uk.ac.leeds.ccg.andyt.generic.data.waas.data.records.WaAS_CombinedRecord;
+import uk.ac.leeds.ccg.andyt.generic.data.waas.data.handlers.WaAS_HHOLD_Handler;
+import uk.ac.leeds.ccg.andyt.generic.data.waas.data.id.WaAS_W1ID;
+import uk.ac.leeds.ccg.andyt.generic.data.waas.data.id.WaAS_W2ID;
+import uk.ac.leeds.ccg.andyt.generic.data.waas.data.records.WaAS_W2Record;
+import uk.ac.leeds.ccg.andyt.generic.data.waas.data.id.WaAS_W3ID;
+import uk.ac.leeds.ccg.andyt.generic.data.waas.data.records.WaAS_W3Record;
+import uk.ac.leeds.ccg.andyt.generic.data.waas.data.id.WaAS_W4ID;
+import uk.ac.leeds.ccg.andyt.generic.data.waas.data.records.WaAS_W4Record;
+import uk.ac.leeds.ccg.andyt.generic.data.waas.data.id.WaAS_W5ID;
+import uk.ac.leeds.ccg.andyt.generic.data.waas.data.records.WaAS_W5Record;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.hhold.WaAS_W1W2W3W4W5HRecord;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.hhold.WaAS_W1HRecord;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.hhold.WaAS_W2HRecord;
@@ -69,7 +69,7 @@ public class UKFI_Process_TENURE extends UKFI_Main_Process {
         /**
          * Initialise TenureCountsWaveGORSubsets and TenureCountsWaveGOR
          */
-        for (byte w = 1; w <= WaAS_Data.NWAVES; w++) {
+        for (byte w = 1; w <= we.NWAVES; w++) {
             TreeMap<Byte, TreeMap<Byte, Integer>> TenureCountsGORSubsets;
             TreeMap<Byte, TreeMap<Byte, Integer>> TenureCountsGOR;
             TenureCountsGORSubsets = new TreeMap<>();
@@ -102,12 +102,12 @@ public class UKFI_Process_TENURE extends UKFI_Main_Process {
         for (byte tenure = 1; tenure <= 6; tenure++) {
 
             // Get tenure counts for subsets.
-            getTenureCountsForGORSubsets(WaAS_Data.W1);
-            getTenureCountsForGORSubsets(WaAS_Data.W5);
+            getTenureCountsForGORSubsets(we.W1);
+            getTenureCountsForGORSubsets(we.W5);
             TreeMap<Byte, TreeMap<Byte, Integer>> TenureCountsGORW1Subsets;
-            TenureCountsGORW1Subsets = TenureCountsWaveGORSubsets.get(WaAS_Data.W1);
+            TenureCountsGORW1Subsets = TenureCountsWaveGORSubsets.get(we.W1);
             TreeMap<Byte, TreeMap<Byte, Integer>> TenureCountsGORW5Subsets;
-            TenureCountsGORW5Subsets = TenureCountsWaveGORSubsets.get(WaAS_Data.W5);
+            TenureCountsGORW5Subsets = TenureCountsWaveGORSubsets.get(we.W5);
 
             // Calculate differences in Tenure tenure for subsets
             TreeMap<Byte, Double> changeTenure1Subset;
@@ -129,12 +129,12 @@ public class UKFI_Process_TENURE extends UKFI_Main_Process {
             WaAS_HHOLD_Handler hH = new WaAS_HHOLD_Handler(env.we);
             TreeMap<WaAS_W1ID, WaAS_W1HRecord> allW1 = hH.loadAllW1();
             TreeMap<Byte, TreeMap<Byte, Integer>> TenureCountsGORW1;
-            TenureCountsGORW1 = getTenureCountsForGOR(gors, allW1, WaAS_Data.W1);
+            TenureCountsGORW1 = getTenureCountsForGOR(gors, allW1, we.W1);
             int allW1size = allW1.size();
             allW1 = null; // Set to null to free memory.
             TreeMap<WaAS_W5ID, WaAS_W5HRecord> allW5 = hH.loadAllW5();
             TreeMap<Byte, TreeMap<Byte, Integer>> TenureCountsGORW5;
-            TenureCountsGORW5 = getTenureCountsForGOR(gors, allW5, WaAS_Data.W5);
+            TenureCountsGORW5 = getTenureCountsForGOR(gors, allW5, we.W5);
             int allW5size = allW5.size();
             allW5 = null; // Set to null to free memory.
 
@@ -166,7 +166,7 @@ public class UKFI_Process_TENURE extends UKFI_Main_Process {
                 }
             }
 
-            // Graph data
+            // Graph collections
             String title;
             String xAxisLabel;
             String yAxisLabel;
@@ -191,25 +191,25 @@ public class UKFI_Process_TENURE extends UKFI_Main_Process {
     public void getTenureCountsForGORSubsets(byte wave) {
         TreeMap<Byte, TreeMap<Byte, Integer>> TenureCountsGOR;
         TenureCountsGOR = TenureCountsWaveGORSubsets.get(wave);
-        if (wave == WaAS_Data.W1) {
-            data.data.keySet().stream().forEach(cID -> {
-                WaAS_Collection c = data.getCollection(cID);
+        if (wave == we.W1) {
+            env.we.data.collections.keySet().stream().forEach(cID -> {
+                WaAS_Collection c = env.we.data.getCollection(cID);
                 c.getData().keySet().stream().forEach(w1ID -> {
                     if (subset.contains(w1ID)) {
                         WaAS_CombinedRecord cr = c.getData().get(w1ID);
-                        WaAS_W1HRecord w1 = cr.w1Rec.getHhold();
-                        Byte GOR = GORSubsetsAndLookups.W1ID2GOR.get(w1ID);
+                        WaAS_W1HRecord w1 = cr.w1Rec.getHr();
+                        Byte GOR = GORSubsetsAndLookups.w1_To_gor.get(w1ID);
                         TreeMap<Byte, Integer> TenureCounts;
                         TenureCounts = TenureCountsGOR.get(GOR);
                         byte TEN1 = w1.getTEN1();
                         Generic_Collections.addToMap(TenureCounts, TEN1, 1);
                     }
                 });
-                data.clearCollection(cID);
+                env.we.data.clearCollection(cID);
             });
-        } else if (wave == WaAS_Data.W2) {
-            data.data.keySet().stream().forEach(cID -> {
-                WaAS_Collection c = data.getCollection(cID);
+        } else if (wave == we.W2) {
+            env.we.data.collections.keySet().stream().forEach(cID -> {
+                WaAS_Collection c = env.we.data.getCollection(cID);
                 c.getData().keySet().stream().forEach(w1ID -> {
                     if (subset.contains(w1ID)) {
                         WaAS_CombinedRecord cr = c.getData().get(w1ID);
@@ -217,8 +217,8 @@ public class UKFI_Process_TENURE extends UKFI_Main_Process {
                         Iterator<WaAS_W2ID> ite2 = w2Records.keySet().iterator();
                         while (ite2.hasNext()) {
                             WaAS_W2ID w2ID = ite2.next();
-                            Byte GOR = GORSubsetsAndLookups.W2ID2GOR.get(w2ID);
-                            WaAS_W2HRecord w2 = w2Records.get(w2ID).getHhold();
+                            Byte GOR = GORSubsetsAndLookups.w2_To_gor.get(w2ID);
+                            WaAS_W2HRecord w2 = w2Records.get(w2ID).getHr();
                             TreeMap<Byte, Integer> TenureCounts;
                             TenureCounts = TenureCountsGOR.get(GOR);
                             byte TEN1 = w2.getTEN1();
@@ -226,11 +226,11 @@ public class UKFI_Process_TENURE extends UKFI_Main_Process {
                         }
                     }
                 });
-                data.clearCollection(cID);
+                env.we.data.clearCollection(cID);
             });
-        } else if (wave == WaAS_Data.W3) {
-            data.data.keySet().stream().forEach(cID -> {
-                WaAS_Collection c = data.getCollection(cID);
+        } else if (wave == we.W3) {
+            env.we.data.collections.keySet().stream().forEach(cID -> {
+                WaAS_Collection c = env.we.data.getCollection(cID);
                 c.getData().keySet().stream().forEach(w1ID -> {
                     if (subset.contains(w1ID)) {
                         WaAS_CombinedRecord cr = c.getData().get(w1ID);
@@ -243,8 +243,8 @@ public class UKFI_Process_TENURE extends UKFI_Main_Process {
                             Iterator<WaAS_W3ID> ite2 = w3_2.keySet().iterator();
                             while (ite2.hasNext()) {
                                 WaAS_W3ID w3ID = ite2.next();
-                                Byte GOR = GORSubsetsAndLookups.W3ID2GOR.get(w3ID);
-                                WaAS_W3HRecord w3 = w3_2.get(w3ID).getHhold();
+                                Byte GOR = GORSubsetsAndLookups.w3_To_gor.get(w3ID);
+                                WaAS_W3HRecord w3 = w3_2.get(w3ID).getHr();
                                 TreeMap<Byte, Integer> TenureCounts;
                                 TenureCounts = TenureCountsGOR.get(GOR);
                                 byte TEN1 = w3.getTEN1();
@@ -253,12 +253,12 @@ public class UKFI_Process_TENURE extends UKFI_Main_Process {
                         }
                     }
                 });
-                data.clearCollection(cID);
+                env.we.data.clearCollection(cID);
             });
-        } else if (wave == WaAS_Data.W4) {
-            data.data.keySet().stream().forEach(cID -> {
+        } else if (wave == we.W4) {
+            env.we.data.collections.keySet().stream().forEach(cID -> {
                 WaAS_Collection c;
-                c = data.getCollection(cID);
+                c = env.we.data.getCollection(cID);
                 c.getData().keySet().stream().forEach(w1ID -> {
                     if (subset.contains(w1ID)) {
                         WaAS_CombinedRecord cr;
@@ -277,8 +277,8 @@ public class UKFI_Process_TENURE extends UKFI_Main_Process {
                                 Iterator<WaAS_W4ID> ite3 = w4_3.keySet().iterator();
                                 while (ite3.hasNext()) {
                                     WaAS_W4ID w4ID = ite3.next();
-                                    Byte GOR = GORSubsetsAndLookups.W4ID2GOR.get(w4ID);
-                                    WaAS_W4HRecord w4  = w4_3.get(w4ID).getHhold();
+                                    Byte GOR = GORSubsetsAndLookups.w4_To_gor.get(w4ID);
+                                    WaAS_W4HRecord w4  = w4_3.get(w4ID).getHr();
                                     TreeMap<Byte, Integer> TenureCounts;
                                     TenureCounts = TenureCountsGOR.get(GOR);
                                     byte TEN1 = w4.getTEN1();
@@ -288,12 +288,12 @@ public class UKFI_Process_TENURE extends UKFI_Main_Process {
                         }
                     }
                 });
-                data.clearCollection(cID);
+                env.we.data.clearCollection(cID);
             });
-        } else if (wave == WaAS_Data.W5) {
-            data.data.keySet().stream().forEach(cID -> {
+        } else if (wave == we.W5) {
+            env.we.data.collections.keySet().stream().forEach(cID -> {
                 WaAS_Collection c;
-                c = data.getCollection(cID);
+                c = env.we.data.getCollection(cID);
                 c.getData().keySet().stream().forEach(w1ID -> {
                     if (subset.contains(w1ID)) {
                         WaAS_CombinedRecord cr  = c.getData().get(w1ID);
@@ -316,8 +316,8 @@ public class UKFI_Process_TENURE extends UKFI_Main_Process {
                                     Iterator<WaAS_W5ID> ite4  = w5_4.keySet().iterator();
                                     while (ite4.hasNext()) {
                                        WaAS_W5ID CASEW5 = ite4.next();
-                                        Byte GOR = GORSubsetsAndLookups.W5ID2GOR.get(CASEW5);
-                                        WaAS_W5HRecord w5  = w5_4.get(CASEW5).getHhold();
+                                        Byte GOR = GORSubsetsAndLookups.w5_To_gor.get(CASEW5);
+                                        WaAS_W5HRecord w5  = w5_4.get(CASEW5).getHr();
                                         TreeMap<Byte, Integer> TenureCounts;
                                         TenureCounts = TenureCountsGOR.get(GOR);
                                         byte TEN1 = w5.getTEN1();
@@ -328,7 +328,7 @@ public class UKFI_Process_TENURE extends UKFI_Main_Process {
                         }
                     }
                 });
-                data.clearCollection(cID);
+                env.we.data.clearCollection(cID);
             });
         }
     }
@@ -337,7 +337,8 @@ public class UKFI_Process_TENURE extends UKFI_Main_Process {
      *
      * @param <K>
      * @param gors
-     * @param wAll
+     * @p
+     * @return aram wAll
      * @param wave
      */
     public <K> TreeMap<Byte, TreeMap<Byte, Integer>> getTenureCountsForGOR(
