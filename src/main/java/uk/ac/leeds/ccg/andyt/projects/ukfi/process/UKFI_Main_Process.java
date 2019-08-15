@@ -66,6 +66,7 @@ import uk.ac.leeds.ccg.andyt.generic.io.Generic_Files;
 import uk.ac.leeds.ccg.andyt.generic.util.Generic_Collections;
 import uk.ac.leeds.ccg.andyt.generic.visualisation.Generic_Visualisation;
 import uk.ac.leeds.ccg.andyt.projects.ukfi.chart.WIGB_LineGraph;
+import uk.ac.leeds.ccg.andyt.projects.ukfi.core.UKFI_Strings;
 import uk.ac.leeds.ccg.andyt.projects.ukfi.io.UKFI_Files;
 
 /**
@@ -127,9 +128,9 @@ public class UKFI_Main_Process extends UKFI_Object {
         File wasDataDir = new File(
                 ge.files.getDataDir().getParentFile().getParentFile().getParentFile(),
                 ws.s_generic);
-        wasDataDir = new File(wasDataDir, ge.strings.s_data);
+        wasDataDir = new File(wasDataDir, UKFI_Strings.s_data);
         wasDataDir = new File(wasDataDir, ws.PROJECT_NAME);
-        wasDataDir = new File(wasDataDir, ge.strings.s_data);
+        wasDataDir = new File(wasDataDir, UKFI_Strings.s_data);
         UKFI_Environment env = new UKFI_Environment(ge, wasDataDir);
         UKFI_Main_Process p = new UKFI_Main_Process(env);
         p.files.setDataDirectory(UKFI_Files.getDefaultDataDir());
@@ -168,7 +169,7 @@ public class UKFI_Main_Process extends UKFI_Object {
 
         boolean doProcessDataForAnastasia = true;
         if (doProcessDataForAnastasia) {
-            processDataForAnastasia();
+            processDataForAnastasia(false);
         }
 
         TreeMap<Integer, Double> breaks = new TreeMap<>();
@@ -273,13 +274,19 @@ public class UKFI_Main_Process extends UKFI_Object {
         env.logEndTag(m);
     }
 
-    public String getAnastasiaHeader() {
+    public String getAnastasiaHeader(boolean addExtraCASEIDs) {
         String h = "CASEW1";
         for (int w = 1; w < 6; w++) {
             String w2 = "W" + w;
-            for (int i = 1; i <= w; i ++) {
+            if (addExtraCASEIDs) {
+                for (int i = 1; i <= w; i++) {
+                    if (w > 1) {
+                        h += ",CASEW" + i;
+                    }
+                }
+            } else {
                 if (w > 1) {
-                    h += ",CASEW" + i; 
+                    h += ",CASEW" + w;
                 }
             }
             h += ",GOR" + w2 + ",NUMADULT" + w2 + ",NUMHHLDR" + w2
@@ -320,14 +327,20 @@ public class UKFI_Main_Process extends UKFI_Object {
     /**
      * This methods generates some CSV collections for Anastasia.
      *
+     * @param addExtraCASEIDs If true then additional
      */
-    protected void processDataForAnastasia() {
-        File dataForAnastasia = new File(files.getOutputDataDir(), "Anastasia.csv");
+    protected void processDataForAnastasia(boolean addExtraCASEIDs) {
+        String outfilename = "Anastasia";
+        if (addExtraCASEIDs) {
+            outfilename += "WithExtraCASEIDs";
+        }
+        outfilename += ".csv";
+        File dataForAnastasia = new File(files.getOutputDataDir(), outfilename);
         /**
          * Write out header.
          */
         try (PrintWriter pw = env.ge.io.getPrintWriter(dataForAnastasia, false)) {
-            pw.println(getAnastasiaHeader());
+            pw.println(getAnastasiaHeader(addExtraCASEIDs));
             /**
              * Write out values.
              */
@@ -392,7 +405,9 @@ public class UKFI_Main_Process extends UKFI_Object {
                          * Wave 2
                          */
                         WaAS_W2HRecord w2hrec = r.w2Rec.getHr();
-                        line += w2hrec.getCASEW1() + ",";
+                        if (addExtraCASEIDs) {
+                            line += w2hrec.getCASEW1() + ",";
+                        }
                         line += w2hrec.getCASEW2() + ",";
                         line += w2hrec.getGOR() + ",";
                         line += w2hrec.getNUMADULT() + ",";
@@ -426,16 +441,30 @@ public class UKFI_Main_Process extends UKFI_Object {
                         line += w2hrec.getHBEDRM() + ",";
 //                            line += w2hrec.getDVTOTNIR() + ",";
 //                            line += w2hrec.getDVTOTGIR() + ",";
-                        line += w2hrec.getTOTPEN_SUM() + ",";
+                        /**
+                         * The following change was required due to differences
+                         * between the data obtained in November 2018 and August
+                         * 2019
+                         */
+                        //line += w2hrec.getTOTPEN_SUM() + ",";
+                        line += w2hrec.getTOTPEN_AGGR() + ",";
                         line += w2hrec.getHFINWNT_SUM() + ",";
-                        line += w2hrec.getHFINL_SUM() + ",";
+                        /**
+                         * The following change was required due to differences
+                         * between the data obtained in November 2018 and August
+                         * 2019
+                         */
+                        //line += w2hrec.getHFINL_SUM() + ",";
+                        line += w2hrec.getHFINL_AGGR() + ",";
                         line += w2hrec.getHMORTG() + ",";
                         /**
                          * Wave 3
                          */
                         WaAS_W3HRecord w3hrec = r.w3Rec.getHr();
-                        line += w3hrec.getCASEW1() + ",";
-                        line += w3hrec.getCASEW2() + ",";
+                        if (addExtraCASEIDs) {
+                            line += w3hrec.getCASEW1() + ",";
+                            line += w3hrec.getCASEW2() + ",";
+                        }
                         line += w3hrec.getCASEW3() + ",";
                         line += w3hrec.getGOR() + ",";
                         line += w3hrec.getNUMADULT() + ",";
@@ -476,11 +505,20 @@ public class UKFI_Main_Process extends UKFI_Object {
                          * Wave 4
                          */
                         WaAS_W4HRecord w4hrec = r.w4Rec.getHr();
-                        line += w4hrec.getCASEW1() + ",";
-                        line += w4hrec.getCASEW2() + ",";
-                        line += w4hrec.getCASEW3() + ",";
+                        if (addExtraCASEIDs) {
+                            line += w4hrec.getCASEW1() + ",";
+                            line += w4hrec.getCASEW2() + ",";
+                            line += w4hrec.getCASEW3() + ",";
+                        }
                         line += w4hrec.getCASEW4() + ",";
-                        line += w4hrec.getGOR() + ",";
+                        /**
+                         * The following change was required due to differences
+                         * between the data obtained in November 2018 and August
+                         * 2019
+                         */
+                        //line += w4hrec.getGOR() + ",";
+                        ArrayList<WaAS_W4PRecord> w4prs = r.w4Rec.getPrs();
+                        line += w4prs.get(0).getGOR() + ",";
                         line += w4hrec.getNUMADULT() + ",";
                         line += w4hrec.getNUMHHLDR() + ",";
                         line += w4hrec.getTOTWLTH() + ",";
@@ -521,10 +559,12 @@ public class UKFI_Main_Process extends UKFI_Object {
                          * Wave 5
                          */
                         WaAS_W5HRecord w5hrec = r.w5Rec.getHr();
-                        line += w5hrec.getCASEW1() + ",";
-                        line += w5hrec.getCASEW2() + ",";
-                        line += w5hrec.getCASEW3() + ",";
-                        line += w5hrec.getCASEW4() + ",";
+                        if (addExtraCASEIDs) {
+                            line += w5hrec.getCASEW1() + ",";
+                            line += w5hrec.getCASEW2() + ",";
+                            line += w5hrec.getCASEW3() + ",";
+                            line += w5hrec.getCASEW4() + ",";
+                        }
                         line += w5hrec.getCASEW5() + ",";
                         line += w5hrec.getGOR() + ",";
                         line += w5hrec.getNUMADULT() + ",";
@@ -588,8 +628,8 @@ public class UKFI_Main_Process extends UKFI_Object {
         for (int i = 0; i < ndivs; i++) {
             subsets[i] = new HashSet<>();
         }
-        String loadName = env.we.strings.s__In_w1w2w3w4w5
-                + env.we.strings.s_StableHouseholdCompositionSubset;
+        String loadName = UKFI_Strings.s__In_w1w2w3w4w5
+                + UKFI_Strings.s_StableHouseholdCompositionSubset;
         WaAS_W1Data w1 = hh.loadW1(subset0, loadName);
         int n = w1.lookup.size();
         env.log("Size " + n);
@@ -759,9 +799,9 @@ public class UKFI_Main_Process extends UKFI_Object {
              * HVALUE, HPROPW
              */
             UKFI_Process_Variable p = new UKFI_Process_Variable(this);
-            p.createGraph(name, yIncrement, env.we.strings.s_HVALUE);
-            p.createGraph(name, yIncrement, env.we.strings.s_TOTWLTH);
-            p.createGraph(name, yIncrement, env.we.strings.s_HPROPW);
+            p.createGraph(name, yIncrement, UKFI_Strings.s_HVALUE);
+            p.createGraph(name, yIncrement, UKFI_Strings.s_TOTWLTH);
+            p.createGraph(name, yIncrement, UKFI_Strings.s_HPROPW);
         }
     }
 
@@ -1215,7 +1255,7 @@ public class UKFI_Main_Process extends UKFI_Object {
             });
         } else if (wave == we.W4) {
             env.we.data.collections.keySet().stream().forEach(cID -> {
-                WaAS_Collection c  = env.we.data.getCollection(cID);
+                WaAS_Collection c = env.we.data.getCollection(cID);
                 c.getData().keySet().stream().forEach(w1ID -> {
                     if (subset.contains(w1ID)) {
                         WaAS_CombinedRecord cr = c.getData().get(w1ID);
@@ -1252,7 +1292,7 @@ public class UKFI_Main_Process extends UKFI_Object {
             });
         } else if (wave == we.W5) {
             env.we.data.collections.keySet().stream().forEach(cID -> {
-                WaAS_Collection c  = env.we.data.getCollection(cID);
+                WaAS_Collection c = env.we.data.getCollection(cID);
                 c.getData().keySet().stream().forEach(w1ID -> {
                     if (subset.contains(w1ID)) {
                         WaAS_CombinedRecord cr = c.getData().get(w1ID);

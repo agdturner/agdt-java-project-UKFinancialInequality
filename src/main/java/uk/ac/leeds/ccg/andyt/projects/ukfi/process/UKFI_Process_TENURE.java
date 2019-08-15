@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.TreeMap;
-import uk.ac.leeds.ccg.andyt.generic.data.waas.core.WaAS_Environment;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_Collection;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.records.WaAS_CombinedRecord;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.handlers.WaAS_HHOLD_Handler;
@@ -273,12 +272,12 @@ public class UKFI_Process_TENURE extends UKFI_Main_Process {
                             Iterator<WaAS_W3ID> ite2 = w4_2.keySet().iterator();
                             while (ite2.hasNext()) {
                                 WaAS_W3ID w3ID = ite2.next();
-                                HashMap<WaAS_W4ID, WaAS_W4Record> w4_3  = w4_2.get(w3ID);
+                                HashMap<WaAS_W4ID, WaAS_W4Record> w4_3 = w4_2.get(w3ID);
                                 Iterator<WaAS_W4ID> ite3 = w4_3.keySet().iterator();
                                 while (ite3.hasNext()) {
                                     WaAS_W4ID w4ID = ite3.next();
                                     Byte GOR = GORSubsetsAndLookups.w4_To_gor.get(w4ID);
-                                    WaAS_W4HRecord w4  = w4_3.get(w4ID).getHr();
+                                    WaAS_W4HRecord w4 = w4_3.get(w4ID).getHr();
                                     TreeMap<Byte, Integer> TenureCounts;
                                     TenureCounts = TenureCountsGOR.get(GOR);
                                     byte TEN1 = w4.getTEN1();
@@ -296,28 +295,28 @@ public class UKFI_Process_TENURE extends UKFI_Main_Process {
                 c = env.we.data.getCollection(cID);
                 c.getData().keySet().stream().forEach(w1ID -> {
                     if (subset.contains(w1ID)) {
-                        WaAS_CombinedRecord cr  = c.getData().get(w1ID);
+                        WaAS_CombinedRecord cr = c.getData().get(w1ID);
                         HashMap<WaAS_W2ID, HashMap<WaAS_W3ID, HashMap<WaAS_W4ID, HashMap<WaAS_W5ID, WaAS_W5Record>>>> w5Records;
                         w5Records = cr.w5Recs;
-                        Iterator<WaAS_W2ID> ite1  = w5Records.keySet().iterator();
+                        Iterator<WaAS_W2ID> ite1 = w5Records.keySet().iterator();
                         while (ite1.hasNext()) {
-                           WaAS_W2ID w2ID = ite1.next();
+                            WaAS_W2ID w2ID = ite1.next();
                             HashMap<WaAS_W3ID, HashMap<WaAS_W4ID, HashMap<WaAS_W5ID, WaAS_W5Record>>> w5_2;
                             w5_2 = w5Records.get(w2ID);
-                            Iterator<WaAS_W3ID> ite2  = w5_2.keySet().iterator();
+                            Iterator<WaAS_W3ID> ite2 = w5_2.keySet().iterator();
                             while (ite2.hasNext()) {
                                 WaAS_W3ID w3ID = ite2.next();
                                 HashMap<WaAS_W4ID, HashMap<WaAS_W5ID, WaAS_W5Record>> w5_3;
                                 w5_3 = w5_2.get(w3ID);
-                                Iterator<WaAS_W4ID> ite3  = w5_3.keySet().iterator();
+                                Iterator<WaAS_W4ID> ite3 = w5_3.keySet().iterator();
                                 while (ite3.hasNext()) {
-                                   WaAS_W4ID w4ID = ite3.next();
-                                    HashMap<WaAS_W5ID, WaAS_W5Record> w5_4  = w5_3.get(w4ID);
-                                    Iterator<WaAS_W5ID> ite4  = w5_4.keySet().iterator();
+                                    WaAS_W4ID w4ID = ite3.next();
+                                    HashMap<WaAS_W5ID, WaAS_W5Record> w5_4 = w5_3.get(w4ID);
+                                    Iterator<WaAS_W5ID> ite4 = w5_4.keySet().iterator();
                                     while (ite4.hasNext()) {
-                                       WaAS_W5ID CASEW5 = ite4.next();
+                                        WaAS_W5ID CASEW5 = ite4.next();
                                         Byte GOR = GORSubsetsAndLookups.w5_To_gor.get(CASEW5);
-                                        WaAS_W5HRecord w5  = w5_4.get(CASEW5).getHr();
+                                        WaAS_W5HRecord w5 = w5_4.get(CASEW5).getHr();
                                         TreeMap<Byte, Integer> TenureCounts;
                                         TenureCounts = TenureCountsGOR.get(GOR);
                                         byte TEN1 = w5.getTEN1();
@@ -337,29 +336,50 @@ public class UKFI_Process_TENURE extends UKFI_Main_Process {
      *
      * @param <K>
      * @param gors
-     * @p
-     * @return aram wAll
+     * @param wAll
      * @param wave
+     * @return
      */
     public <K> TreeMap<Byte, TreeMap<Byte, Integer>> getTenureCountsForGOR(
-            ArrayList<Byte> gors,
-            TreeMap<K, ?> wAll,
-            byte wave) {
+            ArrayList<Byte> gors, TreeMap<K, ?> wAll, byte wave) {
         TreeMap<Byte, TreeMap<Byte, Integer>> TenureCountsGOR;
         TenureCountsGOR = TenureCountsWaveGOR.get(wave);
-        HashMap<Byte, HashMap<Short, Double>> r;
-        r = new HashMap<>();
+        HashMap<Byte, HashMap<Short, Double>> r = new HashMap<>();
         gors.stream().forEach(gor -> {
             r.put(gor, new HashMap<>());
         });
         Iterator<K> ite = wAll.keySet().iterator();
-        K CASEWX;
-        WaAS_W1W2W3W4W5HRecord rec;
-        Byte GOR;
         while (ite.hasNext()) {
-            CASEWX = ite.next();
-            rec = (WaAS_W1W2W3W4W5HRecord) wAll.get(CASEWX);
-            GOR = rec.getGOR();
+            K CASEWX = ite.next();
+            WaAS_W1W2W3W4W5HRecord rec = (WaAS_W1W2W3W4W5HRecord) wAll.get(CASEWX);
+            Byte GOR;
+            /**
+             * The following change was required due to differences between the
+             * data obtained in November 2018 and August 2019
+             */
+            //GOR = rec.getGOR();
+            switch (wave) {
+                case 1:
+                    WaAS_W1HRecord w1HRec = (WaAS_W1HRecord) rec;
+                    GOR = w1HRec.getGOR();
+                    break;
+                case 2:
+                    WaAS_W2HRecord w2HRec = (WaAS_W2HRecord) rec;
+                    GOR = w2HRec.getGOR();
+                    break;
+                case 3:
+                    WaAS_W3HRecord w3HRec = (WaAS_W3HRecord) rec;
+                    GOR = w3HRec.getGOR();
+                    break;
+                case 5:
+                    WaAS_W5HRecord w5HRec = (WaAS_W5HRecord) rec;
+                    GOR = w5HRec.getGOR();
+                    break;
+                default:
+                    env.log("Unrecognised type");
+                    GOR = null;
+                    break;
+            }
             TreeMap<Byte, Integer> TenureCounts;
             TenureCounts = TenureCountsGOR.get(GOR);
             if (TenureCounts == null) {

@@ -17,7 +17,6 @@ package uk.ac.leeds.ccg.andyt.projects.ukfi.io;
 
 import java.io.File;
 import uk.ac.leeds.ccg.andyt.generic.io.Generic_Files;
-import uk.ac.leeds.ccg.andyt.projects.ukfi.core.UKFI_Strings;
 
 /**
  *
@@ -26,34 +25,29 @@ import uk.ac.leeds.ccg.andyt.projects.ukfi.core.UKFI_Strings;
 public class UKFI_Files extends Generic_Files {
 
     /**
-     * @param s
      */
-    public UKFI_Files(UKFI_Strings s){
-        super(s);
+    public UKFI_Files(){
+        super();
     }
 
     /**
      * @param s
      * @param dataDir
      */
-    public UKFI_Files(UKFI_Strings s, File dataDir) {
-        super(s, dataDir);
+    public UKFI_Files(File dataDir) {
+        super(dataDir);
     }
 
     public File getWaASInputDir() {
-        File r;
-        r = new File(getInputDataDir(), "WaAS");
+        File r  = new File(getInputDataDir(), "WaAS");
         r = new File(r, "UKDA-7215-tab");
         r = new File(r, "tab");
         return r;
     }
 
     public File getTIDataFile() {
-        File r;
-        File dir;
-        dir = new File(getInputDataDir(), "TransparencyInternational");
-        r = new File(dir, "Selection.csv");
-        return r;
+        File dir = new File(getInputDataDir(), "TransparencyInternational");
+        return new File(dir, "Selection.csv");
     }
 
     public File getGeneratedWaASDir() {
