@@ -31,7 +31,6 @@ public class UKFI_Files extends Generic_Files {
     }
 
     /**
-     * @param s
      * @param dataDir
      */
     public UKFI_Files(File dataDir) {
@@ -39,20 +38,20 @@ public class UKFI_Files extends Generic_Files {
     }
 
     public File getWaASInputDir() {
-        File r  = new File(getInputDataDir(), "WaAS");
+        File r  = new File(getInputDir(), "WaAS");
         r = new File(r, "UKDA-7215-tab");
         r = new File(r, "tab");
         return r;
     }
 
     public File getTIDataFile() {
-        File dir = new File(getInputDataDir(), "TransparencyInternational");
+        File dir = new File(getInputDir(), "TransparencyInternational");
         return new File(dir, "Selection.csv");
     }
 
     public File getGeneratedWaASDir() {
         File dir;
-        dir = getGeneratedDataDir();
+        dir = getGeneratedDir();
         File f;
         f = new File(dir, "WaAS");
         f.mkdirs();
@@ -69,6 +68,6 @@ public class UKFI_Files extends Generic_Files {
     }
 
     public File getEnvDataFile() {
-        return new File(getGeneratedDataDir(), "Env.dat");
+        return new File(getGeneratedDir(), "Env.dat");
     }
 }

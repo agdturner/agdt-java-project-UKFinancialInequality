@@ -1,6 +1,7 @@
 package uk.ac.leeds.ccg.andyt.projects.ukfi.core;
 
 import java.io.File;
+import java.io.IOException;
 import uk.ac.leeds.ccg.andyt.generic.core.Generic_Environment;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.core.WaAS_Environment;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.WaAS_Data;
@@ -33,7 +34,7 @@ public class UKFI_Environment extends UKFI_OutOfMemoryErrorHandler {
     
     public transient static final String EOL = System.getProperty("line.separator");
 
-    public UKFI_Environment(Generic_Environment ge, File wasDataDir) {
+    public UKFI_Environment(Generic_Environment ge, File wasDataDir) throws IOException {
         //Memory_Threshold = 3000000000L;
         files = new UKFI_Files();
         this.ge = ge;

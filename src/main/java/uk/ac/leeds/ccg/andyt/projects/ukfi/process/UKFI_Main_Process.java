@@ -16,6 +16,7 @@
 package uk.ac.leeds.ccg.andyt.projects.ukfi.process;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -27,6 +28,8 @@ import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import uk.ac.leeds.ccg.andyt.generic.core.Generic_Environment;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.core.WaAS_Environment;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.core.WaAS_Strings;
@@ -62,6 +65,7 @@ import uk.ac.leeds.ccg.andyt.generic.data.waas.data.person.WaAS_W3PRecord;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.person.WaAS_W4PRecord;
 import uk.ac.leeds.ccg.andyt.generic.data.waas.data.person.WaAS_W5PRecord;
 import uk.ac.leeds.ccg.andyt.generic.execution.Generic_Execution;
+import uk.ac.leeds.ccg.andyt.generic.io.Generic_Defaults;
 import uk.ac.leeds.ccg.andyt.generic.io.Generic_Files;
 import uk.ac.leeds.ccg.andyt.generic.util.Generic_Collections;
 import uk.ac.leeds.ccg.andyt.generic.visualisation.Generic_Visualisation;
@@ -123,21 +127,25 @@ public class UKFI_Main_Process extends UKFI_Object {
     }
 
     public static void main(String[] args) {
-        Generic_Environment ge = new Generic_Environment();
-        WaAS_Strings ws = new WaAS_Strings();
-        File wasDataDir = new File(
-                ge.files.getDataDir().getParentFile().getParentFile().getParentFile(),
-                ws.s_generic);
-        wasDataDir = new File(wasDataDir, UKFI_Strings.s_data);
-        wasDataDir = new File(wasDataDir, ws.PROJECT_NAME);
-        wasDataDir = new File(wasDataDir, UKFI_Strings.s_data);
-        UKFI_Environment env = new UKFI_Environment(ge, wasDataDir);
-        UKFI_Main_Process p = new UKFI_Main_Process(env);
-        p.files.setDataDirectory(UKFI_Files.getDefaultDataDir());
-        // Main switches
-        //p.doJavaCodeGeneration = true;
-        p.doLoadDataIntoCaches = true; // rename/reuse just left here for convenience...
-        p.run();
+        try {
+            Generic_Environment ge = new Generic_Environment();
+            WaAS_Strings ws = new WaAS_Strings();
+            File wasDataDir = new File(
+                    ge.files.getDir().getParentFile().getParentFile().getParentFile(),
+                    ws.s_generic);
+            wasDataDir = new File(wasDataDir, UKFI_Strings.s_data);
+            wasDataDir = new File(wasDataDir, ws.PROJECT_NAME);
+            wasDataDir = new File(wasDataDir, UKFI_Strings.s_data);
+            UKFI_Environment env = new UKFI_Environment(ge, wasDataDir);
+            UKFI_Main_Process p = new UKFI_Main_Process(env);
+            p.files.setDir(Generic_Defaults.getDefaultDir());
+            // Main switches
+            //p.doJavaCodeGeneration = true;
+            p.doLoadDataIntoCaches = true; // rename/reuse just left here for convenience...
+            p.run();
+        } catch (IOException ex) {
+            ex.printStackTrace(System.err);
+        }
     }
 
     /**
@@ -335,7 +343,7 @@ public class UKFI_Main_Process extends UKFI_Object {
             outfilename += "WithExtraCASEIDs";
         }
         outfilename += ".csv";
-        File dataForAnastasia = new File(files.getOutputDataDir(), outfilename);
+        File dataForAnastasia = new File(files.getOutputDir(), outfilename);
         /**
          * Write out header.
          */
@@ -1442,7 +1450,7 @@ public class UKFI_Main_Process extends UKFI_Object {
         System.out.println("Title: " + title);
         Generic_Files gf = env.ge.files;
         File outdir;
-        outdir = gf.getOutputDataDir();
+        outdir = gf.getOutputDir();
         String filename;
         filename = title.replace(" ", "_");
         file = new File(outdir, filename + "." + format);
