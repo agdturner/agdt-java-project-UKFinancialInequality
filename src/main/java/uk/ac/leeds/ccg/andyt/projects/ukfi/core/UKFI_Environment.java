@@ -36,7 +36,8 @@ public class UKFI_Environment extends UKFI_OutOfMemoryErrorHandler {
 
     public UKFI_Environment(Generic_Environment ge, File wasDataDir) throws IOException {
         //Memory_Threshold = 3000000000L;
-        files = new UKFI_Files();
+        //files = new UKFI_Files();
+        files = new UKFI_Files(ge.files.getDir());
         this.ge = ge;
         we = new WaAS_Environment(wasDataDir);
         File f = we.files.getEnvDataFile();

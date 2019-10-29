@@ -5,6 +5,7 @@
  */
 package uk.ac.leeds.ccg.andyt.projects.ukfi.process;
 
+import java.io.FileNotFoundException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -97,7 +98,7 @@ public class UKFI_Process_TENURE extends UKFI_Main_Process {
     /**
      *
      */
-    public void createGraph() {
+    public void createGraph() throws FileNotFoundException {
         for (byte tenure = 1; tenure <= 6; tenure++) {
 
             // Get tenure counts for subsets.

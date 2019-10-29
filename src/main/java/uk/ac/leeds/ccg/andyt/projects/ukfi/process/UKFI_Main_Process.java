@@ -16,6 +16,7 @@
 package uk.ac.leeds.ccg.andyt.projects.ukfi.process;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
@@ -84,6 +85,9 @@ public class UKFI_Main_Process extends UKFI_Object {
     protected final WaAS_HHOLD_Handler hh;
     protected final WaAS_Environment we;
 
+    protected final Generic_Visualisation vis;
+    protected final Generic_Execution exec;
+    
     /**
      * Subset of all records that have the same household composition.
      */
@@ -111,6 +115,8 @@ public class UKFI_Main_Process extends UKFI_Object {
         files = env.files;
         hh = env.we.hh;
         we = env.we;
+        vis = new Generic_Visualisation(env.ge);
+        exec = new Generic_Execution(env.ge);
     }
 
     public UKFI_Main_Process(UKFI_Main_Process p) {
@@ -124,6 +130,8 @@ public class UKFI_Main_Process extends UKFI_Object {
         GORSubsetsAndLookups = p.GORSubsetsAndLookups;
         hh = env.we.hh;
         we = env.we;
+        vis = new Generic_Visualisation(env.ge);
+        exec = new Generic_Execution(env.ge);
     }
 
     public static void main(String[] args) {
@@ -164,7 +172,7 @@ public class UKFI_Main_Process extends UKFI_Object {
      * words, how much mobility do households experience between the categories
      * of ‘winners’ and ‘losers’ over the course of those ten years?
      */
-    public void run() {
+    public void run() throws IOException {
         String m = this.getClass().getName() + ".run()";
         env.logStartTag(m);
 
@@ -337,7 +345,7 @@ public class UKFI_Main_Process extends UKFI_Object {
      *
      * @param addExtraCASEIDs If true then additional
      */
-    protected void processDataForAnastasia(boolean addExtraCASEIDs) {
+    protected void processDataForAnastasia(boolean addExtraCASEIDs) throws IOException {
         String outfilename = "Anastasia";
         if (addExtraCASEIDs) {
             outfilename += "WithExtraCASEIDs";
@@ -626,7 +634,7 @@ public class UKFI_Main_Process extends UKFI_Object {
      *
      * @param breaks
      */
-    protected void initialiseSubsets(TreeMap<Integer, Double> breaks) {
+    protected void initialiseSubsets(TreeMap<Integer, Double> breaks) throws FileNotFoundException {
         /**
          * Init subsets. These are deciles of variable though negative and zero
          * values are treated as special case deciles.
@@ -730,7 +738,7 @@ public class UKFI_Main_Process extends UKFI_Object {
     }
 
     protected void sumariseAndGraphDataForSubsets(BigDecimal yIncrement,
-            TreeMap<Integer, Double> breaks) {
+            TreeMap<Integer, Double> breaks) throws FileNotFoundException {
         for (int decile = 1; decile < 10; decile++) {
             subset = subsets[decile - 1];
             String name;
@@ -1441,7 +1449,7 @@ public class UKFI_Main_Process extends UKFI_Object {
             TreeMap<Byte, Double> changeSubset,
             TreeMap<Byte, Double> changeAll, int numberOfYAxisTicks,
             BigDecimal yIncrement) {
-        Generic_Visualisation.getHeadlessEnvironment();
+        vis.getHeadlessEnvironment();
         /*
          * Initialise title and File to write image to
          */
@@ -1469,17 +1477,18 @@ public class UKFI_Main_Process extends UKFI_Object {
         //int yAxisStartOfEndInterval = 60;
         int decimalPlacePrecisionForCalculations = 10;
         int decimalPlacePrecisionForDisplay = 3;
+        boolean drawYZero = false;
         RoundingMode roundingMode = RoundingMode.HALF_UP;
         ExecutorService es = Executors.newSingleThreadExecutor();
-        WIGB_LineGraph chart = new WIGB_LineGraph(es, file, format, title,
+        WIGB_LineGraph chart = new WIGB_LineGraph(env.ge, es, file, format, title,
                 dataWidth, dataHeight, xAxisLabel, yAxisLabel,
-                yMax, yPin, yIncrement, numberOfYAxisTicks,
+                yMax, yPin, yIncrement, numberOfYAxisTicks, drawYZero,
                 decimalPlacePrecisionForCalculations,
                 decimalPlacePrecisionForDisplay, roundingMode);
         chart.setData(variableName, gors, GORNameLookup, changeSubset, changeAll);
         chart.run();
 
         Future future = chart.future;
-        Generic_Execution.shutdownExecutorService(es, future, chart);
+        exec.shutdownExecutorService(es, future, chart);
     }
 }

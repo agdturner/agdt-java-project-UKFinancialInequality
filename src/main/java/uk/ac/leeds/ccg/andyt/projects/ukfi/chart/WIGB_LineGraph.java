@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import uk.ac.leeds.ccg.andyt.chart.examples.Chart_Line;
+import uk.ac.leeds.ccg.andyt.generic.core.Generic_Environment;
 import uk.ac.leeds.ccg.andyt.generic.util.Generic_Collections;
 
 /**
@@ -31,9 +32,6 @@ import uk.ac.leeds.ccg.andyt.generic.util.Generic_Collections;
  * PNG.
  */
 public class WIGB_LineGraph extends Chart_Line {
-
-    public WIGB_LineGraph() {
-    }
 
     /**
      *
@@ -53,24 +51,27 @@ public class WIGB_LineGraph extends Chart_Line {
      * @param decimalPlacePrecisionForDisplay
      * @param r
      */
-    public WIGB_LineGraph(
+    public WIGB_LineGraph(Generic_Environment env, 
             ExecutorService es, File file, String format, String title,
             int dataWidth, int dataHeight,
             String xAxisLabel, String yAxisLabel,
             BigDecimal yMax,
             ArrayList<BigDecimal> yPin,
             BigDecimal yIncrement,
-            int numberOfYAxisTicks,
+            int numberOfYAxisTicks, boolean drawYZero,
             int decimalPlacePrecisionForCalculations,
             int decimalPlacePrecisionForDisplay,
             RoundingMode r) {
-        this.yMax = yMax;
-        this.yPin = yPin;
-        this.yIncrement = yIncrement;
-        this.numberOfYAxisTicks = numberOfYAxisTicks;
-        init(es, file, format, title, dataWidth, dataHeight, xAxisLabel,
-                yAxisLabel, false, decimalPlacePrecisionForCalculations,
-                decimalPlacePrecisionForDisplay, r);
+        super(env, es, file, format, title, dataWidth, dataHeight, xAxisLabel, 
+                yAxisLabel, yMax, yPin, yIncrement, numberOfYAxisTicks, 
+                drawYZero, dataWidth, dataWidth, r);
+//        this.yMax = yMax;
+//        this.yPin = yPin;
+//        this.yIncrement = yIncrement;
+//        this.numberOfYAxisTicks = numberOfYAxisTicks;
+//        init(es, file, format, title, dataWidth, dataHeight, xAxisLabel,
+//                yAxisLabel, false, decimalPlacePrecisionForCalculations,
+//                decimalPlacePrecisionForDisplay, r);
     }
 
     public void setData(

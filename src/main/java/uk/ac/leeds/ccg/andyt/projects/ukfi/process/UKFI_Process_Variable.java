@@ -5,6 +5,7 @@
  */
 package uk.ac.leeds.ccg.andyt.projects.ukfi.process;
 
+import java.io.FileNotFoundException;
 import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.TreeMap;
@@ -24,7 +25,7 @@ public class UKFI_Process_Variable extends UKFI_Main_Process {
      * @param yIncrement The increment to use on the y axis for ticks.
      * @param vName Variable name
      */
-    public void createGraph(String name, BigDecimal yIncrement, String vName) {
+    public void createGraph(String name, BigDecimal yIncrement, String vName) throws FileNotFoundException {
 
         /**
          * Get Variable for each wave in the subsets.

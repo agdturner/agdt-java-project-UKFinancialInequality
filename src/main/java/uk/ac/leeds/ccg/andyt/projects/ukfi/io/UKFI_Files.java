@@ -16,6 +16,7 @@
 package uk.ac.leeds.ccg.andyt.projects.ukfi.io;
 
 import java.io.File;
+import java.io.IOException;
 import uk.ac.leeds.ccg.andyt.generic.io.Generic_Files;
 
 /**
@@ -25,15 +26,9 @@ import uk.ac.leeds.ccg.andyt.generic.io.Generic_Files;
 public class UKFI_Files extends Generic_Files {
 
     /**
-     */
-    public UKFI_Files(){
-        super();
-    }
-
-    /**
      * @param dataDir
      */
-    public UKFI_Files(File dataDir) {
+    public UKFI_Files(File dataDir) throws IOException {
         super(dataDir);
     }
 
