@@ -1,4 +1,7 @@
-# agdt-java-project-UKFinancialInequality
+# UK Financial Inequality
+
+https://github.com/agdturner/agdt-java-project-UKFinancialInequality/
+
 A Java library for processing data for a project exploring contemporary UK financial inequalities - specifically looking at change for different groups since around 2000.
 
 No further details of this project are currently available.
