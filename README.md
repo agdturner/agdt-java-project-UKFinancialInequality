@@ -6,7 +6,7 @@ No further details of this project are currently available.
 ## Usage
 This library is immature and is not recommended for use by others.
 
-# Dependencies
+## Dependencies
 Please see the pom.xml for details.
 1. https://github.com/agdturner/agdt-java-generic-data-WealthAndAssetsSurvey
 A Java library for processing UK Office for National Statistics Wealth and Assets Survey data.
