@@ -2,7 +2,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>uk.ac.leeds.ccg.andyt</groupId>
+    <groupId>io.github.agdturner</groupId>
     <artifactId>agdt-java-project-UKFinancialInequality</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
@@ -17,9 +17,8 @@
     </scm>
     <licenses>
         <license>
-            <name>Apache License 2.0</name>
-            <url>https://github.com/agdturner/agdt-java-project-UKFinancialInequality/LICENSE.txt</url>
-            <distribution>repo</distribution>
+            <name>APACHE LICENSE, VERSION 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
         </license>
     </licenses>
     <organization>
@@ -41,65 +40,87 @@
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <agdt-java-generic.version>1.0-SNAPSHOT</agdt-java-generic.version>
+        <agdt-java-generic.version>1.2-SNAPSHOT</agdt-java-generic.version>
         <agdt-java-generic.chart.version>1.0-SNAPSHOT</agdt-java-generic.chart.version>
-        <agdt-java-generic-data-WealthAndAssetsSurvey.version>1.0-SNAPSHOT</agdt-java-generic-data-WealthAndAssetsSurvey.version>
         <agdt-java-generic.stats.version>1.0-SNAPSHOT</agdt-java-generic.stats.version>
+        <agdt-java-data-WealthAndAssetsSurvey.version>1.0-SNAPSHOT</agdt-java-data-WealthAndAssetsSurvey.version>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
+        <junit.version>5.5.2</junit.version>
+        <hamcrest.version>2.2</hamcrest.version>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>uk.ac.leeds.ccg.andyt</groupId>
+            <groupId>io.github.agdturner</groupId>
             <artifactId>agdt-java-generic</artifactId>
             <version>${agdt-java-generic.version}</version>
         </dependency>
         <dependency>
-            <groupId>uk.ac.leeds.ccg.andyt</groupId>
-            <artifactId>agdt-java-generic-chart</artifactId>
+            <groupId>io.github.agdturner</groupId>
+            <artifactId>agdt-java-chart</artifactId>
             <version>${agdt-java-generic.chart.version}</version>
         </dependency>
         <dependency>
-            <groupId>uk.ac.leeds.ccg.andyt</groupId>
-            <artifactId>agdt-java-generic-stats</artifactId>
+            <groupId>io.github.agdturner</groupId>
+            <artifactId>agdt-java-stats</artifactId>
             <version>${agdt-java-generic.stats.version}</version>
         </dependency>
         <dependency>
-            <groupId>uk.ac.leeds.ccg.andyt</groupId>
-            <artifactId>agdt-java-generic-data-WealthAndAssetsSurvey</artifactId>
-            <version>${agdt-java-generic-data-WealthAndAssetsSurvey.version}</version>
+            <groupId>io.github.agdturner</groupId>
+            <artifactId>agdt-java-data-WealthAndAssetsSurvey</artifactId>
+            <version>${agdt-java-data-WealthAndAssetsSurvey.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+            <version>${hamcrest.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <scope>test</scope>
+            <version>2.44.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.opera</groupId>
+            <artifactId>operadriver</artifactId>
+            <scope>test</scope>
+            <version>1.5</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.seleniumhq.selenium</groupId>
+                    <artifactId>selenium-remote-driver</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+            <version>4.11</version>
         </dependency>
     </dependencies>
-    
-    <repositories>
-        <!--
-        <repository>
-            <id>agdt-java-generic</id>
-            <name>GitHub agdturner agdt-java-generic Repository</name>
-            <url>https://github.com/agdturner/agdt-java-generic/tree/master/target/mvn-repo/uk/ac/leeds/ccg/andyt/agdt-java-generic</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-        -->
-    </repositories>
     
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
+                <version>3.8.1</version>
                 <configuration>
                     <compilerArgs>
                         <arg>-verbose</arg>
@@ -110,15 +131,123 @@
                     <maxmem>512m</maxmem>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M4</version>
+                <!--
+                <version>2.22.2</version>
+                -->
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.0.0-M4</version>
+                <!--
+                <version>2.22.2</version>
+                -->
+            </plugin>
         </plugins>
     </build>
+            
+    <profiles>
+        <profile> 
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.8</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>          
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>3.8.1</version>
+                        <configuration>
+                            <compilerArgs>
+                                <arg>-verbose</arg>
+                                <arg>-Xlint:all,-options,-path</arg>
+                            </compilerArgs>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.0.0-M4</version>
+                        <!--
+                        <version>2.22.2</version>
+                        -->
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>3.0.0-M4</version>
+                        <!--
+                        <version>2.22.2</version>
+                        -->
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>3.2.0</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>3.1.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.5</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
     
     <distributionManagement>
-        <!-- This creates a maven artifact in the target directory which can 
-        then be added to a repository. -->
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <!--
         <repository>
             <id>internal</id>
             <url>file://${project.build.directory}/mvn-repo</url>
         </repository>
+        -->
     </distributionManagement>
 </project>
