@@ -372,7 +372,7 @@ public class UKFI_Main_Process extends UKFI_Object {
                 while (ite2.hasNext()) {
                     WaAS_W1ID w1ID = (WaAS_W1ID) ite2.next();
                     if (subset.contains(w1ID)) {
-                        String line = "" + w1ID.getID() + ",";
+                        String line = "" + w1ID.getId() + ",";
                         WaAS_CombinedRecordSimple r = (WaAS_CombinedRecordSimple) cr.get(w1ID);
                         /**
                          * Wave 1
